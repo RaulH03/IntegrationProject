@@ -1,40 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from scipy.optimize import least_squares
+from scipy.optimize import differential_evolution # CHANGED: Import DE
 from scipy.interpolate import interp1d
 
 # Import the math engine and simulation function from File 1
 from pendulum_function_gen import derive_and_lambdify, fast_dynamics
 
-# Known system constants
 KNOWN_PARAMS = {'l1': 0.2, 'l2': 0.1, 'g': 9.81}
 
-def cost_function(guess_array, t_data, x_data_pos, u_data, M_func, f_func):
+def cost_function_global(guess_array, t_data, x_data_pos, u_data, M_func, f_func):
     """
-    Simulates the system with guessed params and returns error on POSITIONS ONLY.
-    x_data_pos: A 2xN array containing only [theta1, theta2] measurements.
+    Cost function for Global Optimization. 
+    Must return a SCALAR value (Mean Squared Error).
     """
     m1_g, m2_g, b1_g, b2_g = guess_array
-    current_params = {
-        'm1': m1_g, 'm2': m2_g, 'b1': b1_g, 'b2': b2_g, 
-        **KNOWN_PARAMS
-    }
+    current_params = {'m1': m1_g, 'm2': m2_g, 'b1': b1_g, 'b2': b2_g, **KNOWN_PARAMS}
     
     u_func = interp1d(t_data, u_data, bounds_error=False, fill_value="extrapolate")
     
-    # --- ESTIMATE INITIAL CONDITIONS ---
-    # We have starting positions, but need starting velocities for the solver.
-    th1_0, th2_0 = x_data_pos[0, 0], x_data_pos[1, 0]
-    
-    # Estimate initial velocity (finite difference of first two points)
+    # Estimate starting velocities (assuming we start from frame 0)
     dt = t_data[1] - t_data[0]
     dth1_0 = (x_data_pos[0, 1] - x_data_pos[0, 0]) / dt
     dth2_0 = (x_data_pos[1, 1] - x_data_pos[1, 0]) / dt
+    x0_guess = [x_data_pos[0, 0], x_data_pos[1, 0], dth1_0, dth2_0]
     
-    x0_guess = [th1_0, th2_0, dth1_0, dth2_0]
-    
-    # --- SIMULATE ---
     sol = solve_ivp(
         fast_dynamics, 
         [t_data[0], t_data[-1]], 
@@ -44,52 +34,60 @@ def cost_function(guess_array, t_data, x_data_pos, u_data, M_func, f_func):
         method='RK45'
     )
     
+    # Severe penalty for unstable parameters that crash the solver
     if not sol.success:
-        return np.ones_like(x_data_pos.flatten()) * 1e6
+        return 1e6 
         
-    # --- CALCULATE ERROR ON POSITIONS ONLY ---
-    # sol.y is 4xN (pos & vel). x_data_pos is 2xN (pos only).
-    # We slice sol.y[0:2, :] to only compare the angles.
+    # Calculate Mean Squared Error (MSE) over the position data
     error = sol.y[0:2, :] - x_data_pos
+    mse = np.mean(error**2)
     
-    return error.flatten()
+    return mse
 
 
 if __name__ == "__main__":
-    # 1. Load Data
     print("Loading data...")
-    # Replace this with your actual hardware data loading logic
     data = np.load('pendulum_data.npz')
     t_eval = data['t']
     u_data = data['u']
     
-    # Simulate loading ONLY the position rows from your dataset
     x_measured_full = data['x']
-    x_measured_pos = x_measured_full[0:2, :] # Slice out velocities
+    x_measured_pos = x_measured_full[0:2, :] 
     
     M_fast, f_fast = derive_and_lambdify()
 
-    print("\nStarting System Identification (Position Only)...")
-    initial_guess = [0.05, 0.1, 0.1, 0.1] 
-    bounds = ([0.01, 0.01, 0.00, 0.00], [1.00, 1.00, 0.50, 0.50])
+    print("\nStarting Global System Identification via Differential Evolution...")
+    
+    # DE doesn't need an initial guess, it scatters a population across these bounds!
+    # Format: [(min_m1, max_m1), (min_m2, max_m2), (min_b1, max_b1), (min_b2, max_b2)]
+    bounds = [
+        (0.01, 1.0),  # m1 bounds
+        (0.01, 1.0),  # m2 bounds
+        (0.00, 0.5),  # b1 bounds
+        (0.00, 0.5)   # b2 bounds
+    ]
 
-    # Notice we pass x_measured_pos instead of the full state array
-    result = least_squares(
-        cost_function, 
-        initial_guess, 
+    # Run the evolutionary algorithm
+    result = differential_evolution(
+        cost_function_global, 
         bounds=bounds,
         args=(t_eval, x_measured_pos, u_data, M_fast, f_fast),
-        verbose=2,     
-        loss='soft_l1' 
+        strategy='best1bin', # Standard genetic mutation strategy
+        popsize=15,          # Number of "creatures" per generation per parameter (15*4 = 60 total)
+        maxiter=100,         # Maximum number of generations
+        disp=True,           # Print progress of each generation
+        tol=1e-3,            # Stop if the population converges
+        mutation=(0.5, 1.0), # Mutation rate bounds
+        recombination=0.7    # Crossover rate
     )
 
-    # 5. Results
     m1_opt, m2_opt, b1_opt, b2_opt = result.x
-    print("\n--- IDENTIFICATION RESULTS ---")
+    print("\n--- GLOBAL IDENTIFICATION RESULTS ---")
     print(f"Optimized m1: {m1_opt:.4f} kg")
     print(f"Optimized m2: {m2_opt:.4f} kg")
     print(f"Optimized b1: {b1_opt:.4f} Nms/rad")
     print(f"Optimized b2: {b2_opt:.4f} Nms/rad")
+    print(f"Final Mean Squared Error: {result.fun:.6f}")
 
     # 6. Validation Plot
     optimized_params = {'m1': m1_opt, 'm2': m2_opt, 'b1': b1_opt, 'b2': b2_opt, **KNOWN_PARAMS}
