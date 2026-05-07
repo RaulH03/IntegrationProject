@@ -25,4 +25,4 @@ avg_theta_2 = mean(theta_2);
 %% export data
 
 filename = 'expirement_data.xlsx';
-writematrix([t,u,theta_1,theta_2],filename,'range','E1:H1501')
+writematrix([t,u,theta_1,theta_2],filename,'range','E')
