@@ -4,10 +4,13 @@ import sympy as sm
 import sympy.physics.mechanics as me
 import scipy.signal as sig
 
+sm.init_printing('use_latex')
+
 t = me.dynamicsymbols._t
 
 l1, l2 = sm.symbols('l1:3')
 m1, m2 = sm.symbols('m1:3')
+b1, b2 = sm.symbols('b1:3')
 g, u = sm.symbols('g, u')
 
 N, A1, A2 = sm.symbols('N, A1, A2', cls=me.ReferenceFrame)
@@ -39,9 +42,13 @@ P2 = me.Particle('P2', Pm2, m2)
 P1.potential_energy = m1 * g * r_O_m1.dot(N.y)
 P2.potential_energy = m2 * g * r_O_m2.dot(N.y)
 
+
 L = me.Lagrangian(N, P1, P2)
 
-forces = [(A1, u * N.z)]
+forces = [
+    (A1, (u - b1 * th1_dot + b2 * th2_dot) * N.z),
+    (A2, -b2 * th2_dot * N.z)
+]
 
 LM = me.LagrangesMethod(L, [th1, th2], forcelist=forces, frame=N)
 LM.form_lagranges_equations()
@@ -61,94 +68,99 @@ F = sm.Matrix([
     thddot[1]
 ])
 
+
+latex_output = sm.latex(sm.trigsimp(F), mat_str="bmatrix")  # "bmatrix" for brackets  
+print(latex_output)
+
+
 Ac_sym = F.jacobian(X)
 Bc_sym = F.jacobian(U)
 
-# q1=0 (down), q2=pi (up relative to q1), velocities=0, torque=0
-eq_dict = {
-    th1: 0,
-    th2: sm.pi,
-    th1_dot: 0,
-    th2_dot: 0,
-    u: 0
-}
+# # q1=0 (down), q2=pi (up relative to q1), velocities=0, torque=0
+# eq_dict = {
+#     th1: 0,
+#     th2: sm.pi,
+#     th1_dot: 0,
+#     th2_dot: 0,
+#     u: 0
+# }
 
-# Substitute the equilibrium values and simplify to get the final matrices
-Ac = sm.simplify(Ac_sym.subs(eq_dict))
-Bc = sm.simplify(Bc_sym.subs(eq_dict))
+# # Substitute the equilibrium values and simplify to get the final matrices
+# Ac = sm.simplify(Ac_sym.subs(eq_dict))
+# Bc = sm.simplify(Bc_sym.subs(eq_dict))
 
-m1_val, m2_val = 0.1, 0.3
-l1_val, l2_val = 0.2, 0.1
+# m1_val, m2_val = 0.1, 0.3
+# l1_val, l2_val = 0.2, 0.1
 
-params = {
-    m1: m1_val,
-    m2: m2_val,
-    l1: l1_val,
-    l2: l2_val,
-    g: 9.81
-}
+# params = {
+#     m1: m1_val,
+#     m2: m2_val,
+#     l1: l1_val,
+#     l2: l2_val,
+#     g: 9.81
+# }
 
-# Substitute the numbers into the symbolic continuous matrices
-Ac_num = Ac.subs(params)
-Bc_num = Bc.subs(params)
+# # Substitute the numbers into the symbolic continuous matrices
+# Ac_num = Ac.subs(params)
+# Bc_num = Bc.subs(params)
 
-# Convert SymPy matrices to standard NumPy float arrays for SciPy
-A = np.array(Ac_num).astype(np.float64)
-B = np.array(Bc_num).astype(np.float64)
+# # Convert SymPy matrices to standard NumPy float arrays for SciPy
+# A = np.array(Ac_num).astype(np.float64)
+# B = np.array(Bc_num).astype(np.float64)
 
-n = A.shape[0]
+# n = A.shape[0]
 
-K = B 
+# K = B 
 
-# Loop to stack AB, A^2B, A^3B horizontally
-for i in range(1, n):
-    term = lin.matrix_power(A, i) @ B
-    K = np.hstack((K, term))
-
-
-eigenvalues = lin.eigvals(A)
-
-# Find the fastest dynamics (maximum distance from the origin in the s-plane)
-max_omega = np.max(np.abs(eigenvalues)) # in rad/s
-max_freq_hz = max_omega / (2 * np.pi)   # convert to Hz
-
-# Rule of thumb: Sample ~20 times faster than the highest system frequency
-f_sample = 20 * max_freq_hz
-Ts = 1.0 / f_sample
-
-num_states = A.shape[0]
-num_inputs = B.shape[1]
-
-# Full state output and no direct feedthrough
-C_dummy = np.eye(num_states)
-D_dummy = np.zeros((num_states, num_inputs))
-
-sys_continuous = (A, B, C_dummy, D_dummy)
-
-# ZOH discretization
-sys_discrete = sig.cont2discrete(sys_continuous, Ts, method='zoh')
-
-# Extract the discrete matrices
-Ad = sys_discrete[0]
-Bd = sys_discrete[1]
-
-F_num = F.subs(params)
-
-non_linear_dynamics = sm.lambdify((*X, u), F_num, "numpy")
+# # Loop to stack AB, A^2B, A^3B horizontally
+# for i in range(1, n):
+#     term = lin.matrix_power(A, i) @ B
+#     K = np.hstack((K, term))
 
 
-if __name__ == "__main__":
-    print('Numerical A\n', np.round(A, 4))
-    print('Numerical B\n', np.round(B, 4))
+# eigenvalues = lin.eigvals(A)
 
-    print('Controlability matrix\n', K)
-    print('Rank controlability matrix\n', lin.matrix_rank(K))
+# # Find the fastest dynamics (maximum distance from the origin in the s-plane)
+# max_omega = np.max(np.abs(eigenvalues)) # in rad/s
+# max_freq_hz = max_omega / (2 * np.pi)   # convert to Hz
 
-    print('Discrete A\n', np.round(Ad, 4))
-    print('Discrete B\n', np.round(Bd, 4))
+# # Rule of thumb: Sample ~20 times faster than the highest system frequency
+# f_sample = 20 * max_freq_hz
+# Ts = 1.0 / f_sample
 
-    sm.pprint(f)
-    sm.pprint(M)
+# num_states = A.shape[0]
+# num_inputs = B.shape[1]
+
+# # Full state output and no direct feedthrough
+# C_dummy = np.eye(num_states)
+# D_dummy = np.zeros((num_states, num_inputs))
+
+# sys_continuous = (A, B, C_dummy, D_dummy)
+
+# # ZOH discretization
+# sys_discrete = sig.cont2discrete(sys_continuous, Ts, method='zoh')
+
+# # Extract the discrete matrices
+# Ad = sys_discrete[0]
+# Bd = sys_discrete[1]
+
+# F_num = F.subs(params)
+
+# non_linear_dynamics = sm.lambdify((*X, u), F_num, "numpy")
+
+
+# if __name__ == "__main__":
+#     print('Numerical A\n', np.round(A, 4))
+#     print('Numerical B\n', np.round(B, 4))
+
+#     print('Controlability matrix\n', K)
+#     print('Rank controlability matrix\n', lin.matrix_rank(K))
+
+#     print('Discrete A\n', np.round(Ad, 4))
+#     print('Discrete B\n', np.round(Bd, 4))
+
+#     sm.pprint(f)
+#     sm.pprint(M)
 
 
 
