@@ -1,0 +1,28 @@
+clear;clc;
+theta_1_offset = 3.799; %in radians
+theta_2_offset = 1.210; %in radians
+h = 0.01;
+TSim = 15;
+
+t = [0:h:TSim]';
+
+omega = 1;
+amplitude = 0.08;
+u = amplitude * sin(omega* t);
+simin = [t,u];
+
+sim rotpentemplate
+
+y = simout.Data;
+
+theta_1 = y(:,1)-theta_1_offset;
+theta_2 = y(:,2)-theta_2_offset;
+
+%% calibrate
+avg_theta_1 = mean(theta_1);
+avg_theta_2 = mean(theta_2);
+
+%% export data
+
+filename = 'expirement_data.xlsx';
+writematrix([t,u,theta_1,theta_2],filename,'range','E1:H1501')
