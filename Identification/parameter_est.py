@@ -1,25 +1,40 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import signal
 from scipy.integrate import solve_ivp
-from scipy.optimize import differential_evolution # CHANGED: Import DE
+from scipy.optimize import differential_evolution
 from scipy.interpolate import interp1d
 
-# Import the math engine and simulation function from File 1
 from pendulum_function_gen import derive_and_lambdify, fast_dynamics
 
 KNOWN_PARAMS = {'l1': 0.2, 'l2': 0.1, 'g': 9.81}
 
-def cost_function_global(guess_array, t_data, x_data_pos, u_data, M_func, f_func):
-    """
-    Cost function for Global Optimization. 
-    Must return a SCALAR value (Mean Squared Error).
-    """
+
+print("Initializing math engine on this CPU core...")
+M_fast, f_fast = derive_and_lambdify()
+
+
+stop_optimization = False
+
+def handle_ctrl_c(sig, frame):
+    global stop_optimization
+    print("\n[!] Ctrl+C detected! Finishing the current generation and stopping...")
+    stop_optimization = True
+
+signal.signal(signal.SIGINT, handle_ctrl_c)
+
+def early_stop_callback(xk, convergence):
+    global stop_optimization
+    if stop_optimization:
+        return True 
+
+
+def cost_function_global(guess_array, t_data, x_data_pos, u_data):
     m1_g, m2_g, b1_g, b2_g = guess_array
     current_params = {'m1': m1_g, 'm2': m2_g, 'b1': b1_g, 'b2': b2_g, **KNOWN_PARAMS}
     
     u_func = interp1d(t_data, u_data, bounds_error=False, fill_value="extrapolate")
     
-    # Estimate starting velocities (assuming we start from frame 0)
     dt = t_data[1] - t_data[0]
     dth1_0 = (x_data_pos[0, 1] - x_data_pos[0, 0]) / dt
     dth2_0 = (x_data_pos[1, 1] - x_data_pos[1, 0]) / dt
@@ -29,21 +44,19 @@ def cost_function_global(guess_array, t_data, x_data_pos, u_data, M_func, f_func
         fast_dynamics, 
         [t_data[0], t_data[-1]], 
         x0_guess, 
-        args=(u_func, current_params, M_func, f_func), 
+        args=(u_func, current_params, M_fast, f_fast), # Uses globals
         t_eval=t_data,
         method='RK45'
     )
     
-    # Severe penalty for unstable parameters that crash the solver
     if not sol.success:
         return 1e6 
         
-    # Calculate Mean Squared Error (MSE) over the position data
-    error = sol.y[0:2, :] - x_data_pos
-    mse = np.mean(error**2)
+    raw_error = sol.y[0:2, :] - x_data_pos
+    wrapped_error = (raw_error + np.pi) % (2 * np.pi) - np.pi
+    mse = np.mean(wrapped_error**2)
     
     return mse
-
 
 if __name__ == "__main__":
     print("Loading data...")
@@ -53,36 +66,31 @@ if __name__ == "__main__":
     
     x_measured_full = data['x']
     x_measured_pos = x_measured_full[0:2, :] 
-    
-    M_fast, f_fast = derive_and_lambdify()
 
-    print("\nStarting Global System Identification via Differential Evolution...")
+    print("\nStarting Parallel System Identification...")
+    print("Press Ctrl+C at any time to stop early and view the best parameters.")
     
-    # DE doesn't need an initial guess, it scatters a population across these bounds!
-    # Format: [(min_m1, max_m1), (min_m2, max_m2), (min_b1, max_b1), (min_b2, max_b2)]
-    bounds = [
-        (0.01, 1.0),  # m1 bounds
-        (0.01, 1.0),  # m2 bounds
-        (0.00, 0.5),  # b1 bounds
-        (0.00, 0.5)   # b2 bounds
-    ]
+    bounds = [(0.01, 1.0), (0.01, 1.0), (0.00, 0.5), (0.00, 0.5)]
 
     # Run the evolutionary algorithm
     result = differential_evolution(
         cost_function_global, 
         bounds=bounds,
-        args=(t_eval, x_measured_pos, u_data, M_fast, f_fast),
-        strategy='best1bin', # Standard genetic mutation strategy
-        popsize=15,          # Number of "creatures" per generation per parameter (15*4 = 60 total)
-        maxiter=100,         # Maximum number of generations
-        disp=True,           # Print progress of each generation
-        tol=1e-3,            # Stop if the population converges
-        mutation=(0.5, 1.0), # Mutation rate bounds
-        recombination=0.7    # Crossover rate
+        args=(t_eval, x_measured_pos, u_data),
+        strategy='best1bin', 
+        popsize=15,          
+        maxiter=100,         
+        disp=True,           
+        tol=1e-3,
+        callback=early_stop_callback,
+        workers=-1,
+        updating='deferred'
     )
 
     m1_opt, m2_opt, b1_opt, b2_opt = result.x
     print("\n--- GLOBAL IDENTIFICATION RESULTS ---")
+    if stop_optimization:
+        print("(Note: Optimization was stopped early by user)")
     print(f"Optimized m1: {m1_opt:.4f} kg")
     print(f"Optimized m2: {m2_opt:.4f} kg")
     print(f"Optimized b1: {b1_opt:.4f} Nms/rad")
