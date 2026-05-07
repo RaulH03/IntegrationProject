@@ -1,3 +1,4 @@
+%% main
 clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
@@ -5,10 +6,15 @@ h = 0.01;
 TSim = 15;
 
 t = [0:h:TSim]';
-
+y_chirp = chirp(t,0,1,20);
 omega = 1;
-amplitude = 0.08;
-u = amplitude * sin(omega* t);
+amplitude = 0.3;
+u = amplitude * y_chirp;%sin(omega* t+pi/2);
+for i = 1:size(u)
+    if u(i)<0
+        u(i) = u(i)/0.75;
+    end
+end
 simin = [t,u];
 
 sim rotpentemplate
@@ -25,4 +31,8 @@ avg_theta_2 = mean(theta_2);
 %% export data
 
 filename = 'expirement_data.xlsx';
-writematrix([t,u,theta_1,theta_2],filename,'range','E')
+writematrix([t,u,theta_1,theta_2],filename,'sheet',4,'WriteMode','append')
+
+%% chirp
+
+plot(t,y_chirp)
