@@ -61,6 +61,9 @@ def derive_and_lambdify():
     M = sm.simplify(LM.mass_matrix)
     f = sm.simplify(LM.forcing)
 
+    # print(sm.latex(M))
+    # print(sm.latex(f))
+
     # Create ultra-fast numerical functions
     M_func = sm.lambdify((th1, th2, m1, m2, l1, l2, b1, b2, g), M, "numpy")
     f_func = sm.lambdify((th1, th2, th1_dot, th2_dot, u, m1, m2, l1, l2, b1, b2, g), f, "numpy")
@@ -93,11 +96,12 @@ if __name__ == "__main__":
     M_fast, f_fast = derive_and_lambdify()
     
     # True parameters of the "Hardware"
-    true_params = {'m1': 0.15, 'm2': 0.35, 'b1': 0.02, 'b2': 0.015, 'l1': 0.2, 'l2': 0.1, 'g': 9.81}
+    true_params = {'m1': 0.5, 'm2': 0.1, 'b1': 0.7, 'b2': 0.015, 'l1': 0.15, 'l2': 0.15, 'g': 9.81}
     
     # Create a rich excitation signal (chirp-like behavior)
-    t_eval = np.linspace(0, 5, 500) # 5 seconds at 100Hz
-    u_data = 1.2 * np.sin(2 * np.pi * 0.5 * t_eval) + 0.8 * np.sin(2 * np.pi * 2.3 * t_eval)
+    t_eval = np.linspace(0, 5, 1000) # 5 seconds at 100Hz
+    # u_data = 1.2 * np.sin(2 * np.pi * 0.5 * t_eval) + 0.8 * np.sin(2 * np.pi * 2.3 * t_eval)
+    u_data = 5 * np.sin(t_eval**2) 
     u_func_real = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     
     print("Simulating real hardware to collect data...")
@@ -112,7 +116,7 @@ if __name__ == "__main__":
     )
     
     # Add realistic sensor noise (e.g., encoder quantization/noise)
-    noise_std = 0.01 
+    noise_std = 0.05 
     x_measured = sol.y + np.random.normal(0, noise_std, sol.y.shape)
     
     # Save the input/output data to a file for File 2 to load
