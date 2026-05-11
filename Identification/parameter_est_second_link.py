@@ -118,12 +118,8 @@ if __name__ == "__main__":
     
     # Allow c1 to be negative so it can properly identify asymmetric friction direction
     bounds = [
-        (0.01, 1.0),   # m1
         (0.01, 1.0),   # m2
-        (0.00, 0.5),   # b1 (Viscous)
         (0.00, 0.5),   # b2 (Viscous)
-        (-0.5, 0.5),   # c1 (Asymmetry Modifier)
-        (0.01, 5.0)    # Kt
     ]
 
     # Run the evolutionary algorithm
@@ -142,20 +138,17 @@ if __name__ == "__main__":
         updating='deferred'
     )
 
-    m1_opt, m2_opt, b1_opt, b2_opt, c1_opt, Kt_opt= result.x
+    m2_opt, b2_opt= result.x
     print("\n--- GLOBAL IDENTIFICATION RESULTS ---")
     if stop_optimization:
         print("(Note: Optimization was stopped early by user)")
-    print(f"Masses:  m1 = {m1_opt:.4f} kg | m2 = {m2_opt:.4f} kg")
-    print(f"Viscous: b1 = {b1_opt:.4f}    | b2 = {b2_opt:.4f}")
-    print(f"Coulomb: c1 = {c1_opt:.4f}")
-    print(f"Motor:   Kt = {Kt_opt:.4f}")
+    print(f"Mass:  m2 = {m2_opt:.4f} kg")
+    print(f"Viscous: b2 = {b2_opt:.4f}")
     print(f"Final Mean Squared Error: {result.fun:.6f}")
 
     # 6. Validation Plot
-    optimized_params = {'m1': m1_opt, 'm2': m2_opt, 
-                        'b1': b1_opt, 'b2': b2_opt, 
-                        'c1': c1_opt, 'Kt': Kt_opt, 
+    optimized_params = {'m2': m2_opt, 
+                        'b2': b2_opt, 
                         **KNOWN_PARAMS}
     u_func_eval = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     
