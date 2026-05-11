@@ -30,9 +30,16 @@ def early_stop_callback(xk, convergence):
         return True 
 
 def cost_function_global(guess_array, t_data, x_data_pos, u_data):
-    m1_g, m2_g, b1_g, b2_g = guess_array
-    current_params = {'m1': m1_g, 'm2': m2_g, 'b1': b1_g, 'b2': b2_g, **KNOWN_PARAMS}
-    
+    m1_g, m2_g, b1_g, b2_g, c1_g, c2_g, bias1_g, bias2_g = guess_array
+
+    current_params = {
+        'm1': m1_g, 'm2': m2_g, 
+        'b1': b1_g, 'b2': b2_g, 
+        'c1': c1_g, 'c2': c2_g, 
+        'bias1': bias1_g, 'bias2': bias2_g, 
+        **KNOWN_PARAMS
+    }
+
     u_func = interp1d(t_data, u_data, bounds_error=False, fill_value="extrapolate")
     
     # 1. Estimate velocities for the ENTIRE dataset upfront
@@ -82,8 +89,7 @@ def cost_function_global(guess_array, t_data, x_data_pos, u_data):
             
         # Calculate raw error for this chunk (NO WRAPPING)
         chunk_error = sol.y[0:2, :] - x_target_chunk
-        wrapped_error = (chunk_error + np.pi) % (2 * np.pi) - np.pi
-        total_mse += np.mean(wrapped_error**2)
+        total_mse += np.mean(chunk_error**2)
         
     # Return the average error across all chunks
     return total_mse / num_chunks
@@ -155,7 +161,16 @@ if __name__ == "__main__":
     print("\nStarting Parallel System Identification...")
     print("Press Ctrl+C at any time to stop early and view the best parameters.")
     
-    bounds = [(0.01, 5.0), (0.01, 1.0), (0.00, 2.0), (0.00, 0.5)]
+    bounds = [
+        (0.01, 1.0),   # m1
+        (0.01, 1.0),   # m2
+        (0.00, 0.5),   # b1 (Viscous)
+        (0.00, 0.5),   # b2 (Viscous)
+        (0.00, 0.5),   # c1 (Coulomb Stiction)
+        (0.00, 0.5),   # c2 (Coulomb Stiction)
+        (-0.5, 0.5),   # bias1 (Directional offset)
+        (-0.5, 0.5)    # bias2 (Directional offset)
+    ]
 
     # Run the evolutionary algorithm
     result = differential_evolution(
@@ -172,18 +187,22 @@ if __name__ == "__main__":
         updating='deferred'
     )
 
-    m1_opt, m2_opt, b1_opt, b2_opt = result.x
+    m1_opt, m2_opt, b1_opt, b2_opt, c1_opt, c2_opt, bias1_opt, bias2_opt = result.x
     print("\n--- GLOBAL IDENTIFICATION RESULTS ---")
     if stop_optimization:
         print("(Note: Optimization was stopped early by user)")
-    print(f"Optimized m1: {m1_opt:.4f} kg")
-    print(f"Optimized m2: {m2_opt:.4f} kg")
-    print(f"Optimized b1: {b1_opt:.4f} Nms/rad")
-    print(f"Optimized b2: {b2_opt:.4f} Nms/rad")
+    print(f"Masses:  m1 = {m1_opt:.4f} kg | m2 = {m2_opt:.4f} kg")
+    print(f"Viscous: b1 = {b1_opt:.4f}    | b2 = {b2_opt:.4f}")
+    print(f"Coulomb: c1 = {c1_opt:.4f}    | c2 = {c2_opt:.4f}")
+    print(f"Biases:  offset1 = {bias1_opt:.4f} | offset2 = {bias2_opt:.4f}")
     print(f"Final Mean Squared Error: {result.fun:.6f}")
 
     # 6. Validation Plot
-    optimized_params = {'m1': m1_opt, 'm2': m2_opt, 'b1': b1_opt, 'b2': b2_opt, **KNOWN_PARAMS}
+    optimized_params = {'m1': m1_opt, 'm2': m2_opt, 
+                        'b1': b1_opt, 'b2': b2_opt, 
+                        'c1': c1_opt, 'c2': c2_opt, 
+                        'bias1': bias1_opt, 'bias2': bias2_opt, 
+                        **KNOWN_PARAMS}
     u_func_eval = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     
     sol_opt = solve_ivp(
