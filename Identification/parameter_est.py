@@ -131,9 +131,10 @@ if __name__ == "__main__":
     u_data = data[:, 1]
     print(u_data)
     x_measured = data[:, 2:].T
-    x_measured[:, 0] = np.unwrap(x_measured[:, 0] + 3.779) - 3.779
-    x_measured[:, 1] = np.unwrap(x_measured[:, 1] + 1.21) - 1.21
-    print(x_measured)
+    x_measured[0, :] = np.unwrap(x_measured[0, :] + 3.779) - 3.779
+    x_measured[1, :] = np.unwrap(x_measured[1, :] + 1.21) - 1.21
+    # plt.plot(x_measured[1, :])
+    # plt.show()
     x_measured_pos = x_measured[0:2, :] 
 
     window = 21 
@@ -150,10 +151,11 @@ if __name__ == "__main__":
     full_state_est = np.vstack((x_measured_pos, dq1_est, dq2_est))
     x_measured_full = full_state_est
 
+
     print("\nStarting Parallel System Identification...")
     print("Press Ctrl+C at any time to stop early and view the best parameters.")
     
-    bounds = [(0.01, 5.0), (0.01, 1.0), (0.00, 0.9), (0.00, 0.5)]
+    bounds = [(0.01, 5.0), (0.01, 1.0), (0.00, 2.0), (0.00, 0.5)]
 
     # Run the evolutionary algorithm
     result = differential_evolution(
