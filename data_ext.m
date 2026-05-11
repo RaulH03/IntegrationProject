@@ -6,15 +6,17 @@ h = 0.01;
 TSim = 15;
 
 t = [0:h:TSim]';
-y_chirp = chirp(t,0,4,2);
 omega = 1;
 amplitude = 0.3;
-u = amplitude * y_chirp;%sin(omega* t+pi/2);
-for i = 1:size(u)
-    if u(i)<0
-        u(i) = u(i)/0.75;
-    end
-end
+%y_input = chirp(t,0,4,2);
+%y_input = sin(omega* t+pi/2);
+y_input = idinput(size(t));
+u = amplitude * y_input;
+%for i = 1:size(u)
+%    if u(i)<0
+%        u(i) = u(i)/0.75;
+%    end
+%end
 simin = [t,u];
 
 sim rotpentemplate
