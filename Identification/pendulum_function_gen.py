@@ -10,8 +10,8 @@ t = me.dynamicsymbols._t
 l1, l2 = sm.symbols('l1 l2')
 m1, m2 = sm.symbols('m1 m2')
 b1, b2 = sm.symbols('b1 b2')
-c1, c2 = sm.symbols('c1 c2')          
-bias1, bias2 = sm.symbols('bias1 bias2')
+c1 = sm.symbols('c1')          
+bias1 = sm.symbols('bias1')
 g, u = sm.symbols('g u')
 th1, th2 = me.dynamicsymbols('theta1 theta2')
 th1_dot, th2_dot = th1.diff(t), th2.diff(t)
@@ -54,7 +54,7 @@ def derive_and_lambdify():
     # Corrected friction and reaction forces
     k_smooth = 20.0
     fric_tau1 = b1 * th1_dot + c1 * sm.tanh(k_smooth * th1_dot) + bias1
-    fric_tau2 = b2 * th2_dot + c2 * sm.tanh(k_smooth * th2_dot) + bias2
+    fric_tau2 = b2 * th2_dot
 
     forces = [
         (A1, (u - fric_tau1 + fric_tau2) * N.z),
@@ -71,8 +71,8 @@ def derive_and_lambdify():
     # print(sm.latex(f))
 
     # Create ultra-fast numerical functions
-    M_func = sm.lambdify((th1, th2, m1, m2, l1, l2, b1, b2, c1, c2, bias1, bias2, g), M, "numpy")
-    f_func = sm.lambdify((th1, th2, th1_dot, th2_dot, u, m1, m2, l1, l2, b1, b2, c1, c2, bias1, bias2, g), f, "numpy")
+    M_func = sm.lambdify((th1, th2, m1, m2, l1, l2, b1, b2, c1, bias1, g), M, "numpy")
+    f_func = sm.lambdify((th1, th2, th1_dot, th2_dot, u, m1, m2, l1, l2, b1, b2, c1, bias1, g), f, "numpy")
     
     print("Derivation complete.")
     return M_func, f_func
@@ -86,9 +86,9 @@ def fast_dynamics(t, state, u_func, p, M_func, f_func):
     u_val = u_func(t)
     
     # Evaluate M and f using the lambdified functions
-    M_val = M_func(q1, q2, p['m1'], p['m2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['c2'], p['bias1'], p['bias2'], p['g'])
-    f_val = f_func(q1, q2, dq1, dq2, u_val, p['m1'], p['m2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['c2'], p['bias1'], p['bias2'], p['g'])
-    
+    M_val = M_func(q1, q2, p['m1'], p['m2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['bias1'], p['g'])
+    f_val = f_func(q1, q2, dq1, dq2, u_val, p['m1'], p['m2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['bias1'], p['g'])
+
     # Solve M * q_ddot = f for q_ddot
     q_ddot = lin.solve(M_val, f_val).flatten()
     
