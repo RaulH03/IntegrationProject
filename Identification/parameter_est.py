@@ -82,7 +82,8 @@ def cost_function_global(guess_array, t_data, x_data_pos, u_data):
             
         # Calculate raw error for this chunk (NO WRAPPING)
         chunk_error = sol.y[0:2, :] - x_target_chunk
-        total_mse += np.mean(chunk_error**2)
+        wrapped_error = (chunk_error + np.pi) % (2 * np.pi) - np.pi
+        total_mse += np.mean(wrapped_error**2)
         
     # Return the average error across all chunks
     return total_mse / num_chunks
@@ -118,12 +119,36 @@ def cost_function_global(guess_array, t_data, x_data_pos, u_data):
 
 if __name__ == "__main__":
     print("Loading data...")
-    data = np.load('pendulum_data.npz')
-    t_eval = data['t']
-    u_data = data['u']
+    # data = np.load('pendulum_data.npz')    
+    # t_eval = data['t']
+    # u_data = data['u']
     
-    x_measured_full = data['x']
-    x_measured_pos = x_measured_full[0:2, :] 
+    # x_measured_full = data['x']
+    # x_measured_pos = x_measured_full[0:2, :] 
+    data = np.loadtxt('expirement_data_freq_sweep_UTF8_dot.csv', delimiter = ';', skiprows = 1) 
+    t_eval = data[:, 0]
+    print(t_eval)
+    u_data = data[:, 1]
+    print(u_data)
+    x_measured = data[:, 2:].T
+    x_measured[:, 0] = np.unwrap(x_measured[:, 0] + 3.779) - 3.779
+    x_measured[:, 1] = np.unwrap(x_measured[:, 1] + 1.21) - 1.21
+    print(x_measured)
+    x_measured_pos = x_measured[0:2, :] 
+
+    window = 21 
+    poly = 3
+    dt = t_eval[1] - t_eval[0]
+    th1_smooth = savgol_filter(x_measured_pos[0, :], window_length=window, polyorder=poly)
+    th2_smooth = savgol_filter(x_measured_pos[1, :], window_length=window, polyorder=poly)
+
+    # 2. TAKE THE GRADIENT OF THE SMOOTHED DATA
+    dq1_est = np.gradient(th1_smooth, dt)
+    dq2_est = np.gradient(th2_smooth, dt)
+        
+    # Combine into a full 4xN state array [th1, th2, th1_dot, th2_dot]
+    full_state_est = np.vstack((x_measured_pos, dq1_est, dq2_est))
+    x_measured_full = full_state_est
 
     print("\nStarting Parallel System Identification...")
     print("Press Ctrl+C at any time to stop early and view the best parameters.")

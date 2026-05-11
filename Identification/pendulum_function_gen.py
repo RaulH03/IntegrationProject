@@ -101,7 +101,7 @@ if __name__ == "__main__":
     # Create a rich excitation signal (chirp-like behavior)
     t_eval = np.linspace(0, 5, 1000) # 5 seconds at 100Hz
     # u_data = 1.2 * np.sin(2 * np.pi * 0.5 * t_eval) + 0.8 * np.sin(2 * np.pi * 2.3 * t_eval)
-    u_data = 5 * np.sin(t_eval**2) 
+    u_data = 2 * np.sin(t_eval**2) 
     u_func_real = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     
     print("Simulating real hardware to collect data...")
