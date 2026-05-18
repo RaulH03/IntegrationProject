@@ -1,3 +1,3 @@
-T = load("sin_amp02.mat");
+T = load("idinput_dt005_amp02.mat");
 D = table(T.ans);
-writetable(D,'sin_amp02.csv')
+writetable(D,'idinput_dt005_amp02.csv')
