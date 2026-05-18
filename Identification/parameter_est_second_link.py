@@ -72,15 +72,15 @@ def cost_function_global(guess_array, t_data, x_target_smooth, full_state_est, u
             
         # Calculate raw error against the smoothed target data
 
-        error_th1 = sol.y[0, :] - x_target_chunk[0, :]
+        # error_th1 = sol.y[0, :] - x_target_chunk[0, :]
         error_th2 = sol.y[1, :] - x_target_chunk[1, :]
         
         # Divide by the global variance of each signal so they have equal weight
-        var_th1 = np.var(full_state_est[0, :])
-        var_th2 = np.var(full_state_est[1, :])
+        # var_th1 = np.var(full_state_est[0, :])
+        # var_th2 = np.var(full_state_est[1, :])
         
         # Add them together
-        total_mse += np.mean((error_th1**2) / var_th1) + np.mean((error_th2**2) / var_th2)
+        total_mse +=  np.mean(error_th2**2)
         
     return total_mse / num_chunks
         
