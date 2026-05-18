@@ -8,7 +8,7 @@ from scipy.signal import savgol_filter # Add this to your imports
 
 from pendulum_function_gen import derive_and_lambdify, fast_dynamics
 
-KNOWN_PARAMS = {'l1': 0.1, 'l2': 0.1, 'g': 9.81}
+KNOWN_PARAMS = {'l1': 0.1, 'l2': 0.1, 'g': 9.81, 'm1': 0.0254, 'b1': 0.4962, 'c1': 0.0461, 'Kt': 2.7564}
 
 
 print("Initializing math engine on this CPU core...")
@@ -30,16 +30,13 @@ def early_stop_callback(xk, convergence):
         return True 
 
 def cost_function_global(guess_array, t_data, x_target_smooth, full_state_est, u_data):
-    m1_g, m2_g, b1_g, b2_g, c1_g, Kt_g = guess_array
+    m2_g, b2_g = guess_array
 
 
-    if abs(c1_g) >= b1_g:
-        return 1e6
     
     current_params = {
-        'm1': m1_g, 'm2': m2_g, 
-        'b1': b1_g, 'b2': b2_g, 
-        'c1': c1_g, 'Kt': Kt_g,
+        'm2': m2_g, 
+        'b2': b2_g, 
         **KNOWN_PARAMS
     }
 
@@ -121,12 +118,8 @@ if __name__ == "__main__":
     
     # Allow c1 to be negative so it can properly identify asymmetric friction direction
     bounds = [
-        (0.01, 1.0),   # m1
         (0.01, 1.0),   # m2
-        (0.00, 0.5),   # b1 (Viscous)
         (0.00, 0.5),   # b2 (Viscous)
-        (-0.5, 0.5),   # c1 (Asymmetry Modifier)
-        (0.01, 5.0)    # Kt
     ]
 
     # Run the evolutionary algorithm
@@ -145,20 +138,17 @@ if __name__ == "__main__":
         updating='deferred'
     )
 
-    m1_opt, m2_opt, b1_opt, b2_opt, c1_opt, Kt_opt= result.x
+    m2_opt, b2_opt= result.x
     print("\n--- GLOBAL IDENTIFICATION RESULTS ---")
     if stop_optimization:
         print("(Note: Optimization was stopped early by user)")
-    print(f"Masses:  m1 = {m1_opt:.4f} kg | m2 = {m2_opt:.4f} kg")
-    print(f"Viscous: b1 = {b1_opt:.4f}    | b2 = {b2_opt:.4f}")
-    print(f"Coulomb: c1 = {c1_opt:.4f}")
-    print(f"Motor:   Kt = {Kt_opt:.4f}")
+    print(f"Mass:  m2 = {m2_opt:.4f} kg")
+    print(f"Viscous: b2 = {b2_opt:.4f}")
     print(f"Final Mean Squared Error: {result.fun:.6f}")
 
     # 6. Validation Plot
-    optimized_params = {'m1': m1_opt, 'm2': m2_opt, 
-                        'b1': b1_opt, 'b2': b2_opt, 
-                        'c1': c1_opt, 'Kt': Kt_opt, 
+    optimized_params = {'m2': m2_opt, 
+                        'b2': b2_opt, 
                         **KNOWN_PARAMS}
     u_func_eval = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     
