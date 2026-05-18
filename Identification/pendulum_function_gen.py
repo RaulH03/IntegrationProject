@@ -67,7 +67,7 @@ def derive_and_lambdify():
 
     # Forces with Motor Torque Constant Kt
     forces = [
-        (A1, (Kt*u - fric_tau1 + fric_tau2) * N.z),
+        (A1, (-Kt*u - fric_tau1 + fric_tau2) * N.z),
         (A2, -fric_tau2 * N.z)
     ]
 
