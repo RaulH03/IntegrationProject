@@ -1,0 +1,3 @@
+T = load("Chirp_dt01_fr1_4.mat");
+D = table
+writetable(T,'Chirp_dt01_fr1_4.csv')

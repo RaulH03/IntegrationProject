@@ -7,10 +7,10 @@ TSim = 60;
 
 t = [0:h:TSim]';
 omega = 1;
-amplitude = 0.25;
-y_input = chirp(t,0,1,4);
+amplitude = 0.1;
+%y_input = chirp(t,0,1,4);
 %y_input = sin(omega* t+pi/2);
-%y_input = idinput(size(t));
+y_input = idinput(size(t));
 u = amplitude * y_input;
 %for i = 1:size(u)
 %    if u(i)<0
@@ -32,7 +32,7 @@ avg_theta_2 = mean(theta_2);
 
 %% export data
 
-filename = 'expirement_data.xlsx';
+filename = 'expirement_data.x';
 writematrix([t,u,theta_1,theta_2],filename,'sheet',5,'Range','E1:H1501')
 
 %% chirp
