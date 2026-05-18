@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 # Define SymPy symbols globally so they can be referenced
 t = me.dynamicsymbols._t
 l1, l2 = sm.symbols('l1 l2')
+I1, I2 = sm.symbols('I1 I2')
 m1, m2 = sm.symbols('m1 m2')
 b1, b2 = sm.symbols('b1 b2')
 c1 = sm.symbols('c1')          
@@ -40,17 +41,37 @@ def derive_and_lambdify():
     Pm1.set_pos(O, r_O_m1)
     Pm2 = me.Point('Pm2')
     Pm2.set_pos(O, r_O_m2)
-
+    
     Pm1.set_vel(N, r_O_m1.dt(N))
     Pm2.set_vel(N, r_O_m2.dt(N))
 
-    P1 = me.Particle('P1', Pm1, m1)
-    P2 = me.Particle('P2', Pm2, m2)
+    r_O_o1 = -l1*A1.y/2
+    r_O_o2 = r_O_m1 - l2*A2.y/2
 
-    P1.potential_energy = m1 * g * r_O_m1.dot(N.y)
-    P2.potential_energy = m2 * g * r_O_m2.dot(N.y)
+    Po1 = me.Point('Po1')
+    Po1.set_pos(O, r_O_o1)
+    Po2 = me.Point('Po2')
+    Po2.set_pos(O, r_O_o2)
 
-    L = me.Lagrangian(N, P1, P2)
+    Po1.set_vel(N, r_O_o1.dt(N))
+    Po2.set_vel(N, r_O_o2.dt(N))
+
+    Inertia_1 = (me.inertia(A1, 0, 0, I1), Po1)
+    Inertia_2 = (me.inertia(A2, 0, 0, I2), Po2)
+
+    B1 = me.RigidBody('B1', Po1, A1, m1, Inertia_1)
+    B2 = me.RigidBody('B2', Po2, A2, m2, Inertia_2)
+
+    B1.potential_energy = m1 * g * r_O_o1.dot(N.y)
+    B2.potential_energy = m2 * g * r_O_o2.dot(N.y)
+
+    # P1 = me.Particle('P1', Pm1, m1)
+    # P2 = me.Particle('P2', Pm2, m2)
+
+    # P1.potential_energy = m1 * g * r_O_m1.dot(N.y)
+    # P2.potential_energy = m2 * g * r_O_m2.dot(N.y)
+
+    L = me.Lagrangian(N, B1, B2)
 
     # Corrected friction and reaction forces
     k_smooth = 5.0
@@ -65,15 +86,20 @@ def derive_and_lambdify():
     LM = me.LagrangesMethod(L, [th1, th2], forcelist=forces, frame=N)
     LM.form_lagranges_equations()
 
-    M = sm.simplify(LM.mass_matrix)
-    f = sm.simplify(LM.forcing)
+    M = LM.mass_matrix
+    f = LM.forcing
 
-    # print(sm.latex(M))
-    # print(sm.latex(f))
+    # 1. Create plain, static symbols
+    q1, q2, dq1, dq2 = sm.symbols('q1 q2 dq1 dq2')
+    
+    # 2. Swap the complex time-derivatives for the static symbols
+    subs_dict = {th1: q1, th2: q2, th1_dot: dq1, th2_dot: dq2}
+    M_clean = M.subs(subs_dict)
+    f_clean = f.subs(subs_dict)
 
-    # Create ultra-fast numerical functions
-    M_func = sm.lambdify((th1, th2, m1, m2, l1, l2, b1, b2, c1, Kt,  g), M, "numpy")
-    f_func = sm.lambdify((th1, th2, th1_dot, th2_dot, u, m1, m2, l1, l2, b1, b2, c1, Kt, g), f, "numpy")
+    # 3. Lambdify using the clean static symbols (cse=True will now work perfectly!)
+    M_func = sm.lambdify((q1, q2, m1, m2, I1, I2, l1, l2, b1, b2, c1, Kt, g), M_clean, "numpy", cse=True)
+    f_func = sm.lambdify((q1, q2, dq1, dq2, u, m1, m2, I1, I2, l1, l2, b1, b2, c1, Kt, g), f_clean, "numpy", cse=True)
     
     print("Derivation complete.")
     return M_func, f_func
@@ -87,8 +113,8 @@ def fast_dynamics(t, state, u_func, p, M_func, f_func):
     u_val = u_func(t)
     
     # Evaluate M and f using the lambdified functions
-    M_val = M_func(q1, q2, p['m1'], p['m2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['Kt'], p['g'])
-    f_val = f_func(q1, q2, dq1, dq2, u_val, p['m1'], p['m2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['Kt'], p['g'])
+    M_val = M_func(q1, q2, p['m1'], p['m2'], p['I1'], p['I2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['Kt'], p['g'])
+    f_val = f_func(q1, q2, dq1, dq2, u_val, p['m1'], p['m2'], p['I1'], p['I2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['Kt'], p['g'])
 
     # Solve M * q_ddot = f for q_ddot
     q_ddot = lin.solve(M_val, f_val).flatten()
@@ -103,8 +129,15 @@ if __name__ == "__main__":
     M_fast, f_fast = derive_and_lambdify()
     
     # True parameters of the "Hardware"
-    true_params = {'m1': 0.5, 'm2': 0.1, 'b1': 0.7, 'b2': 0.015, 'l1': 0.15, 'l2': 0.15, 'g': 9.81}
-    
+    true_params = {
+        'm1': 0.5, 'm2': 0.1, 
+        'I1': 0.01, 'I2': 0.005,  # NEW: Added Inertias
+        'b1': 0.7, 'b2': 0.015, 
+        'c1': 0.05,               # NEW: Added Asymmetric friction
+        'Kt': 1.0,                # NEW: Added Motor Torque constant
+        'l1': 0.15, 'l2': 0.15, 'g': 9.81
+    }
+
     # Create a rich excitation signal (chirp-like behavior)
     t_eval = np.linspace(0, 5, 1000) # 5 seconds at 100Hz
     # u_data = 1.2 * np.sin(2 * np.pi * 0.5 * t_eval) + 0.8 * np.sin(2 * np.pi * 2.3 * t_eval)
