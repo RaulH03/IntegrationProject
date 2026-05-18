@@ -8,7 +8,7 @@ from scipy.signal import savgol_filter # Add this to your imports
 
 from pendulum_function_gen import derive_and_lambdify, fast_dynamics
 
-KNOWN_PARAMS = {'l1': 0.1, 'l2': 0.1, 'g': 9.81}
+KNOWN_PARAMS = {'l1': 0.1, 'l2': 0.1, 'g': 9.81, 'Kt': 2.73}
 
 
 print("Initializing math engine on this CPU core...")
@@ -30,7 +30,7 @@ def early_stop_callback(xk, convergence):
         return True 
 
 def cost_function_global(guess_array, t_data, x_target_smooth, full_state_est, u_data):
-    m1_g, m2_g, I1_g, I2_g, b1_g, b2_g, c1_g, Kt_g = guess_array
+    m1_g, m2_g, I1_g, I2_g, b1_g, b2_g, c1_g = guess_array #, Kt_g
 
 
     if abs(c1_g) >= b1_g:
@@ -40,7 +40,8 @@ def cost_function_global(guess_array, t_data, x_target_smooth, full_state_est, u
         'm1': m1_g, 'm2': m2_g, 
         'I1': I1_g, 'I2': I2_g, 
         'b1': b1_g, 'b2': b2_g, 
-        'c1': c1_g, 'Kt': Kt_g,
+        'c1': c1_g,
+        # 'Kt': Kt_g,
         **KNOWN_PARAMS
     }
 
@@ -91,12 +92,15 @@ def cost_function_global(guess_array, t_data, x_target_smooth, full_state_est, u
 
 if __name__ == "__main__":
     print("Loading data...")
-    data = np.loadtxt('expirement_data_freq_sweep_UTF8_dot.csv', delimiter=';', skiprows=1) 
-    t_eval = data[:, 0]
-    u_data = -data[:, 1]
+    data = np.loadtxt('experiments/IDinput_amp01.csv', delimiter=',', skiprows=1) 
+    t_eval = data[0, :]
+    # print('t', t_eval)
+    u_data = data[1, :]
+    # print('u',u_data)
     
-    x_measured = data[:, 2:].T
-    x_measured[0, :] = np.unwrap(x_measured[0, :] + 3.779) - 3.779
+    x_measured = data[2:, :]
+    # print(np.shape(x_measured))
+    x_measured[0, :] = np.unwrap(x_measured[0, :] + 3.799) - 3.799
     x_measured[1, :] = np.unwrap(x_measured[1, :] + 1.21) - 1.21
     x_measured_pos = x_measured[0:2, :] 
 
@@ -122,14 +126,14 @@ if __name__ == "__main__":
     
     # Allow c1 to be negative so it can properly identify asymmetric friction direction
     bounds = [
-        (0.01, 0.5),   # m1
-        (0.01, 0.1),   # m2
-        (0.01, 1.0),   # I1
-        (0.01, 1.0),   # I2
+        (0.01, 0.3),   # m1
+        (0.001, 0.05),   # m2
+        (0.00001, 0.005),   # I1
+        (0.000001, 0.0005),   # I2
         (0.00, 0.5),   # b1 (Viscous)
         (0.00, 0.5),   # b2 (Viscous)
         (-0.5, 0.5),   # c1 (Asymmetry Modifier)
-        (0.01, 5.0)    # Kt
+        # (0.01, 5.0)    # Kt
     ]
 
     # Run the evolutionary algorithm
@@ -140,15 +144,16 @@ if __name__ == "__main__":
         args=(t_eval, x_target_smooth, full_state_est, u_data),
         strategy='best1bin', 
         popsize=15,          
-        maxiter=150,  # 150 is usually plenty to see convergence        
+        maxiter=150,         
         disp=True,           
         tol=1e-4,
         callback=early_stop_callback,
         workers=-1,
-        updating='deferred'
+        updating='deferred',
+        polish=False
     )
 
-    m1_opt, m2_opt, I1_opt, I2_opt, b1_opt, b2_opt, c1_opt, Kt_opt= result.x
+    m1_opt, m2_opt, I1_opt, I2_opt, b1_opt, b2_opt, c1_opt= result.x #, Kt_opt
     print("\n--- GLOBAL IDENTIFICATION RESULTS ---")
     if stop_optimization:
         print("(Note: Optimization was stopped early by user)")
@@ -156,14 +161,15 @@ if __name__ == "__main__":
     print(f"Inertia: I1 = {I1_opt:.4f}    | I2 = {I2_opt:.4f}")
     print(f"Viscous: b1 = {b1_opt:.4f}    | b2 = {b2_opt:.4f}")
     print(f"Coulomb: c1 = {c1_opt:.4f}")
-    print(f"Motor:   Kt = {Kt_opt:.4f}")
+    # print(f"Motor:   Kt = {Kt_opt:.4f}")
     print(f"Final Mean Squared Error: {result.fun:.6f}")
 
     # 6. Validation Plot
     optimized_params = {'m1': m1_opt, 'm2': m2_opt, 
                         'I1': I1_opt, 'I2': I2_opt, 
                         'b1': b1_opt, 'b2': b2_opt, 
-                        'c1': c1_opt, 'Kt': Kt_opt, 
+                        'c1': c1_opt, 
+                        # 'Kt': Kt_opt, 
                         **KNOWN_PARAMS}
     u_func_eval = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     

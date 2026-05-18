@@ -79,7 +79,7 @@ def derive_and_lambdify():
     fric_tau2 = b2 * th2_dot
 
     forces = [
-        (A1, (Kt*u - fric_tau1 + fric_tau2) * N.z),
+        (A1, (-Kt*u - fric_tau1 + fric_tau2) * N.z),
         (A2, -fric_tau2 * N.z)
     ]
 
