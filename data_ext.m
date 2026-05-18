@@ -2,7 +2,7 @@
 clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
-h = 0.1;
+h = 0.05;
 TSim = 60;
 
 t = [0:h:TSim]';
@@ -12,9 +12,11 @@ amplitude = 0.1;
 %y_input = sin(omega* t+pi/2);
 y_input = idinput(size(t));
 u = amplitude * y_input;
+%u = amplitude*zeros((TSim/h)+1,1);
+
 %for i = 1:size(u)
 %    if u(i)<0
-%        u(i) = u(i)/0.75;
+%        u(i) = u(i)/0.74;
 %    end
 %end
 simin = [t,u];
