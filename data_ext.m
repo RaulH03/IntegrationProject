@@ -11,8 +11,8 @@ amplitude = 0.1;
 %y_input = chirp(t,0,1,4);
 %y_input = sin(omega* t+pi/2);
 y_input = idinput(size(t));
-u = amplitude * y_input;
-%u = amplitude*zeros((TSim/h)+1,1);
+%u = amplitude * y_input;
+u = amplitude*zeros((TSim/h)+1,1);
 
 %for i = 1:size(u)
 %    if u(i)<0

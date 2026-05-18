@@ -1,3 +1,3 @@
-T = load("idinput_dt005_amp02.mat");
+T = load("zero_input_upright.mat");
 D = table(T.ans);
-writetable(D,'idinput_dt005_amp02.csv')
+writetable(D,'zero_input_upright.csv')
