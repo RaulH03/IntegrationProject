@@ -8,7 +8,7 @@ np.seterr(all='ignore')
 warnings.filterwarnings('ignore') 
 
 # Import your generated physics
-from pendulum_function_gen import derive_and_lambdify, fast_dynamics
+from pendulum_function_gen import derive_and_lambdify, fast_dynamics, linearize_system, get_equilibrium_models
 
 # ==========================================
 # CUSTOM FIXED-STEP SOLVER (RK4)
@@ -45,12 +45,14 @@ if __name__ == "__main__":
     # num_samples = data_full.shape[1]
     # data = data_full[:, :int(num_samples/2)].copy()
 
-    # data = np.loadtxt('experiments/idinput_dt005_amp02.csv', delimiter=',', skiprows=1) 
+    data = np.loadtxt('experiments/idinput_dt005_amp02.csv', delimiter=',', skiprows=1) 
     # data = np.loadtxt('experiments/sin_amp02.csv', delimiter=',', skiprows=1) 
     # data = np.loadtxt('experiments/idinput_dt005_amp01.csv', delimiter=',', skiprows=1) 
     # data = np.loadtxt('experiments/idinput_amp02.csv', delimiter=',', skiprows=1) 
     # data = np.loadtxt('experiments/IDinput_amp04.csv', delimiter=',', skiprows=1) 
    
+
+
 
     # Calculate dt directly from the first two time steps
     dt = data[0, 1] - data[0, 0]
@@ -114,6 +116,22 @@ if __name__ == "__main__":
         'c1': 0.6830, 
         **KNOWN_PARAMS
     }
+
+       # After derive_and_lambdify()
+    M_clean, f_clean = derive_and_lambdify(lamdify=False)
+    
+    # 1. Generate the symbolic Jacobian functions
+    E_func, A_func, B_func = linearize_system(M_clean, f_clean) 
+    
+    # 2. Extract the A and B matrices at each equilibrium
+    models = get_equilibrium_models(optimized_params, E_func, A_func, B_func)
+
+    A = models['Down-Down']['A']
+    B = models['Down-Down']['B']
+    
+    # Print the Up-Up unstable equilibrium matrices
+    print("Down-Down Equilibrium A Matrix:\n", np.round(A, 3))
+    print("Down-Down Equilibrium B Matrix:\n", np.round(A, 3))
     
     print("\nSimulating full dataset validation using RK4 (Open-Loop)...")
     
