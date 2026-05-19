@@ -3,7 +3,6 @@ import numpy.linalg as lin
 import sympy as sm
 import sympy.physics.mechanics as me
 from scipy.integrate import solve_ivp
-from scipy.interpolate import interp1d
 
 # Define SymPy symbols globally
 t = me.dynamicsymbols._t
@@ -61,9 +60,16 @@ def derive_and_lambdify():
     L = me.Lagrangian(N, B1, B2)
 
     # Smooth asymmetric friction
-    k_smooth = 5.0
-    fric_tau1 = b1 * th1_dot + c1 * th1_dot * sm.tanh(k_smooth * th1_dot)
-    fric_tau2 = b2 * th2_dot
+    # k_smooth = 100.0
+    # fric_tau1 = b1 * th1_dot + c1 * th1_dot * sm.tanh(k_smooth * th1_dot) #
+
+    k_smooth = 100.0
+    s_th1 = sm.tanh(k_smooth * th1_dot) 
+    
+    # If moving positive (right), apply b1. If moving negative (left), apply c1.
+    # The final * s_th1 guarantees it always opposes the direction of motion.
+    fric_tau1 = (b1 * ((1 + s_th1)/2) + c1 * ((1 - s_th1)/2)) * s_th1
+    fric_tau2 = b2 * sm.tanh(k_smooth*th2_dot)
 
     # Forces with Motor Torque Constant Kt
     forces = [
@@ -94,9 +100,22 @@ def derive_and_lambdify():
     return M_func, f_func
 
 
-def fast_dynamics(t, state, u_func, p, M_func, f_func):
+def fast_dynamics(t, state, u_array, t0, dt, p, M_func, f_func):
+    """
+    Blazing fast ODE execution using O(1) Zero-Order Hold array indexing.
+    """
     q1, q2, dq1, dq2 = state
-    u_val = u_func(t)
+    
+    # Calculate exact array index instantly (mimics hardware ZOH)
+    idx = int((t - t0) / dt)
+    
+    # Safety clamp to prevent out-of-bounds if solver takes a micro-step too far
+    if idx >= len(u_array):
+        idx = len(u_array) - 1
+    elif idx < 0:
+        idx = 0
+        
+    u_val = u_array[idx]
     
     M_val = M_func(q1, q2, p['m1'], p['m2'], p['I1'], p['I2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['Kt'], p['g'])
     f_val = f_func(q1, q2, dq1, dq2, u_val, p['m1'], p['m2'], p['I1'], p['I2'], p['l1'], p['l2'], p['b1'], p['b2'], p['c1'], p['Kt'], p['g'])
@@ -106,9 +125,9 @@ def fast_dynamics(t, state, u_func, p, M_func, f_func):
 
 
 if __name__ == "__main__":
+    # --- DATA GENERATION TEST BLOCK ---
     M_fast, f_fast = derive_and_lambdify()
     
-    # Safe dummy parameters for generating test data
     true_params = {
         'm1': 0.15, 'm2': 0.05, 
         'I1': 0.001, 'I2': 0.0005,
@@ -118,14 +137,14 @@ if __name__ == "__main__":
     }
     
     t_eval = np.linspace(0, 5, 1000) 
+    dt = t_eval[1] - t_eval[0]
     u_data = 2 * np.sin(t_eval**2) 
-    u_func_real = interp1d(t_eval, u_data, bounds_error=False, fill_value="extrapolate")
     
     print("Simulating real hardware to collect data...")
     x0 = [0.0, 0.0, 0.0, 0.0]
     sol = solve_ivp(
         fast_dynamics, [t_eval[0], t_eval[-1]], x0, 
-        args=(u_func_real, true_params, M_fast, f_fast), 
+        args=(u_data, t_eval[0], dt, true_params, M_fast, f_fast), 
         t_eval=t_eval, method='Radau'
     )
     
