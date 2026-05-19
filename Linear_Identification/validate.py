@@ -5,10 +5,10 @@ from pendulum_core import simulate_open_loop, augment_input
 
 if __name__ == "__main__":
     print("Loading data...")
-    # data = np.loadtxt('experiments/sin_amp02.csv', delimiter=',', skiprows=1) 
+    # data = np.loadtxt('experiments/idinput_dt005_amp02.csv', delimiter=',', skiprows=1) 
     data = np.loadtxt('expirement_data_freq_sweep_UTF8_dot.csv', delimiter=';', skiprows=1).T
     dt = data[0, 1] - data[0, 0]
-    datas = data[:, :int(10.0 / dt)]
+    datas = data[:, :int(12.0 / dt)]
     
     t_eval = datas[0, :]
     u_data = datas[1, :]
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # ====================================================
     # PASTE THE LIST OUTPUT FROM optimize.py HERE!
     # ====================================================
-    p_opt = [0.00937, 0.00135, 0.00101, 0.08437, 0.0754, 0.68466, 0.0, 0.27994, 0.14904]
+    p_opt = [0.00267, 0.00143, 0.00119, 0.10703, 0.09362, 0.51714, 8e-05, 0.01546, 0.05117]
     
     print("Running Open-Loop Validation...")
     x_sim = simulate_open_loop(p_opt, u_data, x_meas, dt, KNOWN_KT, delay_steps=1)
