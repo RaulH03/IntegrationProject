@@ -27,9 +27,17 @@ if __name__ == "__main__":
     
     print("Running Open-Loop Validation...")
 
+    A, B = build_matrices(p_opt, 2.73, eq='Down-Up')
+    print(A)
+    print(B)
+
+    A, B = build_matrices(p_opt, 2.73, eq='Down-Down')
+    print(A)
+    print(B)
+
     x_sim = simulate_open_loop(p_opt, u_data, x_meas, dt, KNOWN_KT, delay_steps=1)
     u_aug = augment_input(u_data, x_meas[2, :], p_opt, KNOWN_KT, delay_steps=1)
-    print(build_matrices(p_opt, 2.73))
+
     
     rmse_th1 = np.sqrt(np.mean((x_sim[0, :] - x_meas[0, :])**2))
     rmse_th2 = np.sqrt(np.mean((x_sim[1, :] - x_meas[1, :])**2))

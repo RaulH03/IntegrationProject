@@ -10,7 +10,7 @@ _A_func = None
 _B_func = None
 _P_funcs = None
 
-def _auto_derive_math():
+def _auto_derive_math(eq='Down-Down'):
     """Uses SymPy to automatically derive lumped mappings and state-space matrices."""
     global _A_func, _B_func, _P_funcs
     print("Auto-deriving physics and state-space matrices via SymPy (runs once)...")
@@ -49,8 +49,10 @@ def _auto_derive_math():
     # --- NEW: Automatically extract the true B vector from the physics ---
     B_sym_full = f_sym.jacobian(sm.Matrix([u]))
 
-    # Evaluate at Down-Down equilibrium
+
+    
     eq_dict = {th1: 0, th2: 0, th1_d: 0, th2_d: 0, u: 0}
+    
     M_eq = sm.simplify(LM.mass_matrix.subs(eq_dict))
     K_eq = sm.simplify(K_sym.subs(eq_dict))
     D_eq = sm.simplify(D_sym.subs(eq_dict))
@@ -95,8 +97,18 @@ def build_matrices(p, Kt, eq='Down-Down'):
     if _A_func is None: _auto_derive_math()
     
     P1, P2, P3, P4, P5, P6, P7 = p[:7]
-    if eq == 'Up-Up':
-        P4, P5 = -P4, -P5  # Gravity flips for inverted equilibrium
+    # Adjust lumped parameters based on the equilibrium geometry
+    # Assumes 'p' was identified/defined at the 'Down-Down' equilibrium
+    if eq == 'Down-Up':
+        P2 = -P2  # links are opposing, cos(-pi) = -1
+        P5 = -P5  # link 2 is up, cos(pi) = -1
+    elif eq == 'Up-Down':
+        P2 = -P2  # links are opposing, cos(pi) = -1
+        P4 = -P4  # link 1 is up, cos(pi) = -1
+    elif eq == 'Up-Up':
+        # P2 remains positive because cos(pi - pi) = cos(0) = 1
+        P4 = -P4  # link 1 is up
+        P5 = -P5  # link 2 is up
 
     det = P1 * P3 - P2**2
     if det < 1e-6: return None, None
