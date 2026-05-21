@@ -2,19 +2,21 @@
 clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
-h = 0.01;
-TSim = 5;
+h = 0.1;
+TSim = 30;
 
 t = [0:h:TSim]';
 omega = 1;
-amplitude = 0.2;
-y_input = chirp(t,0,4,4);
+amplitude = 0.5;
+%y_input = chirp(t,0,4,4);
 %y_input = sin(omega* t+pi/2);
 %y_input = idinput(size(t));
-dt = zeros(size(t,1));
-du = amplitude*ones(size(t,1)-100);
-u = amplitude * y_input;
+dt = zeros(size(t,1),1);
+du = amplitude*ones(size(t,1)-100,1);
+%u = amplitude * y_input;
 %u = amplitude*zeros((TSim/h)+1,1);
+dt(101:size(t,1),1) = du;
+u = dt;
 
 %for i = 1:size(u)
 %    if u(i)<0
@@ -22,7 +24,7 @@ u = amplitude * y_input;
 %    end
 %end
 simin = [t,u];
-
+%%
 sim rotpentemplate2
 
 y = simout.Data;
