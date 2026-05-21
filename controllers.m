@@ -22,9 +22,9 @@ C = [1, 0, 0, 0;
 
 D = [0;
      0];
-Q = diag([1e-4, 1e-4, 1e-10, 1e-10]);
-
-R = 1e10;
-[K,S,P] = dlqr(A, B, Q, R);
+Q = diag([3e1, 1e1, 1e-5, 1e-10]);
+sysd = c2d(ss(A,B,C,D),h);
+R = 1e-1;
+[K,S,P] = lqr(A, B, Q, R);
 
 K
