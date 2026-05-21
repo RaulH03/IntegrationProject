@@ -2,7 +2,7 @@
 clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
-h = 0.1;
+h = 0.01;
 TSim = 30;
 
 t = [0:h:TSim]';
