@@ -15,7 +15,7 @@ if __name__ == "__main__":
     x_meas_pos = datas[2:4, :]
     
     x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
-    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)
+    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)  + x_meas_pos[0, :]
     x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
     x_meas[2:4, 0] = 0
     KNOWN_KT = 2.73
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # ====================================================
     # PASTE THE LIST OUTPUT FROM optimize.py HERE!
     # ====================================================
-    p_opt = [0.0040934915, 0.0013381305, 0.0008817189, 0.1833209615, 0.0949814996, 0.6455604995, 0.0002478587, 0.0006822052, 0.210397423]
+    p_opt = [0.0073527193, 0.0004231656, 0.0008147257, 0.0816167804, 0.0880178983, 0.7556685308, 0.0002723551, 0.236510509, 0.4236585704]
     
     print("Running Open-Loop Validation...")
 
