@@ -1,3 +1,0 @@
-T = load("idinput_dt005_amp01_offset.mat");
-D = table(T.ans);
-writetable(D,'idinput_dt005_amp01_offset.csv')

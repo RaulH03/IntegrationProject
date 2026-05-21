@@ -1,3 +1,3 @@
-T = load("idinput_dt005_amp01_offset074.mat");
+T = load("chirp44_amp02_dt001.mat");
 D = table(T.ans);
-writetable(D,'idinput_dt005_amp01_offset074.csv')
+writetable(D,'chirp44_amp02_dt001.csv')
