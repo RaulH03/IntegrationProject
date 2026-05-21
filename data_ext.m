@@ -3,7 +3,7 @@ clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
 h = 0.01;
-TSim = 15;
+TSim = 5;
 
 t = [0:h:TSim]';
 omega = 1;
@@ -11,6 +11,8 @@ amplitude = 0.2;
 y_input = chirp(t,0,4,4);
 %y_input = sin(omega* t+pi/2);
 %y_input = idinput(size(t));
+dt = zeros(size(t,1));
+du = amplitude*ones(size(t,1)-100);
 u = amplitude * y_input;
 %u = amplitude*zeros((TSim/h)+1,1);
 
