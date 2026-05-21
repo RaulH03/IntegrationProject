@@ -21,7 +21,7 @@ def _auto_derive_math():
     th1_d, th2_d = th1.diff(t), th2.diff(t)
 
     N, A1, A2 = me.ReferenceFrame('N'), me.ReferenceFrame('A1'), me.ReferenceFrame('A2')
-    A1.orient_axis(N, th1, N.z); A2.orient_axis(A1, th2, A1.z)
+    A1.orient_axis(N, th1, N.z); A2.orient_axis(N, th2, A1.z)
     O = me.Point('0'); O.set_vel(N, 0)
 
     r_m1 = -l1 * A1.y
@@ -37,7 +37,7 @@ def _auto_derive_math():
 
     L = me.Lagrangian(N, B1, B2)
     
-    forces = [(A1, (-Kt_sym*u - b1*th1_d + b2*th2_d) * N.z), (A2, -b2*th2_d * N.z)]
+    forces = [(A1, (-Kt_sym*u - b1*th1_d + b2*(th2_d - th1_d)) * N.z), (A2, -b2*(th2_d - th1_d) * N.z)]
 
     LM = me.LagrangesMethod(L, [th1, th2], forcelist=forces, frame=N)
     LM.form_lagranges_equations()
@@ -57,15 +57,15 @@ def _auto_derive_math():
     B_eq = sm.simplify(B_sym_full.subs(eq_dict)) # This perfectly evaluates to [[-Kt_sym], [0]]
 
     # Extract lumped groupings
-    P_exprs = [M_eq[0, 0], M_eq[0, 1], M_eq[1, 1], K_eq[0, 0], K_eq[0, 1], D_eq[0, 0], D_eq[1, 1]]
+    P_exprs = [M_eq[0, 0], M_eq[0, 1], M_eq[1, 1], K_eq[0, 0], K_eq[1, 1], D_eq[0, 0], D_eq[1, 1]]
     phys_syms = (m1, m2, I1, I2, l1, l2, b1, b2, g)
     _P_funcs = [sm.lambdify(phys_syms, expr, 'numpy') for expr in P_exprs]
 
     # Convert to explicit A and B matrices using Adjugate
     P1, P2, P3, P4, P5, P6, P7 = sm.symbols('P1 P2 P3 P4 P5 P6 P7', real=True)
     M_lump = sm.Matrix([[P1, P2], [P2, P3]])
-    K_lump = sm.Matrix([[P4, P5], [P5, P5]])
-    D_lump = sm.Matrix([[P6, 0],  [0, P7]])
+    K_lump = sm.Matrix([[P4, 0], [0, P5]])
+    D_lump = sm.Matrix([[P6, -P7],  [-P7, P7]])
 
     det_sym = P1 * P3 - P2**2
     M_inv = M_lump.adjugate() / det_sym

@@ -4,7 +4,7 @@ from scipy.optimize import differential_evolution
 from pendulum_core import get_lumped_bounds, simulate_n_step
 
 def objective_global(p, u_data, x_meas, dt, Kt):
-    x_sim = simulate_n_step(p, u_data, x_meas, dt, Kt, n_steps=100, delay_steps=1)
+    x_sim = simulate_n_step(p, u_data, x_meas, dt, Kt, n_steps=200, delay_steps=1)
     if np.isinf(x_sim[0,0]): return 1e6
     
     mse_th1 = np.mean((x_sim[0, :] - x_meas[0, :])**2)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     
     # 1. Tight constraints to force physical compliance
     phys_min = {'m1': 0.05, 'm2': 0.01, 'I1': 0.0001, 'I2': 0.0001, 'l1': 0.1, 'l2': 0.1, 'b1': 0.0, 'b2': 0.0, 'dry1': 0.0, 'dry2': 0.0, 'g': KNOWN_G}
-    phys_max = {'m1': 0.5,  'm2': 0.2,  'I1': 0.1,   'I2': 0.05,   'l1': 0.1, 'l2': 0.1, 'b1': 5.0, 'b2': 0.5, 'dry1': 2.0, 'dry2': 2.0, 'g': KNOWN_G}
+    phys_max = {'m1': 0.5,  'm2': 0.2,  'I1': 0.1,   'I2': 0.1,   'l1': 0.1, 'l2': 0.1, 'b1': 5.0, 'b2': 0.5, 'dry1': 2.0, 'dry2': 2.0, 'g': KNOWN_G}
     phys_guess = {'m1': 0.11, 'm2': 0.03, 'I1': 0.004, 'I2': 0.001, 'l1': 0.1, 'l2': 0.1, 'b1': 0.85, 'b2': 0.001, 'dry1': 0.05, 'dry2': 0.05, 'g': KNOWN_G}
 
     # 2. Extract bounds
@@ -28,9 +28,9 @@ if __name__ == "__main__":
     de_bounds = list(zip(lower_bounds, upper_bounds))
 
     # 3. Load & Process Data
-    data = np.loadtxt('expirement_data_freq_sweep_UTF8_dot.csv', delimiter=';', skiprows=1).T
+    data = np.loadtxt('experiments/chirp44_amp02_dt001.csv', delimiter=',', skiprows=1)
     dt = data[0, 1] - data[0, 0]
-    datas = data[:, :int(5.0 / dt)]
+    datas = data#[:, :int(5.0 / dt)]
     
     u_data = datas[1, :]
     x_meas_pos = datas[2:4, :]
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :] + 1.21) - 1.21, 7, 3)
     # skip offset compensation
     x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
-    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)
+    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3) + x_meas_pos[0, :]
     x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
 
     # 4. Run Optimizer
