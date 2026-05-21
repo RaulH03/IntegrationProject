@@ -37,7 +37,6 @@ def _auto_derive_math():
 
     L = me.Lagrangian(N, B1, B2)
     
-    # Your correct physics: Positive u creates negative torque
     forces = [(A1, (-Kt_sym*u - b1*th1_d + b2*th2_d) * N.z), (A2, -b2*th2_d * N.z)]
 
     LM = me.LagrangesMethod(L, [th1, th2], forcelist=forces, frame=N)

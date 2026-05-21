@@ -30,12 +30,15 @@ if __name__ == "__main__":
     # 3. Load & Process Data
     data = np.loadtxt('expirement_data_freq_sweep_UTF8_dot.csv', delimiter=';', skiprows=1).T
     dt = data[0, 1] - data[0, 0]
-    datas = data[:, :int(13.0 / dt)]
+    datas = data[:, :int(5.0 / dt)]
     
     u_data = datas[1, :]
     x_meas_pos = datas[2:4, :]
-    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :] + 3.799) - 3.799, 7, 3)
-    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :] + 1.21) - 1.21, 7, 3)
+    # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :] + 3.799) - 3.799, 7, 3)
+    # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :] + 1.21) - 1.21, 7, 3)
+    # skip offset compensation
+    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
+    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)
     x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
 
     # 4. Run Optimizer
@@ -47,4 +50,4 @@ if __name__ == "__main__":
     )
     
     print("\n--- COPY THIS LIST INTO validate.py ---")
-    print(list(float(res) for res in np.round(res.x, 5)))
+    print(list(float(res) for res in np.round(res.x, 10)))
