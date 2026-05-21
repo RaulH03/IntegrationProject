@@ -1,22 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter, detrend
-from pendulum_core import simulate_open_loop, augment_input
+from pendulum_core import simulate_open_loop, augment_input, build_matrices
 
 if __name__ == "__main__":
     print("Loading data...")
     # data = np.loadtxt('experiments/idinput_dt005_amp02.csv', delimiter=',', skiprows=1) 
-    data = np.loadtxt('expirement_data_freq_sweep_UTF8_dot.csv', delimiter=';', skiprows=1).T
+    data = np.loadtxt('experiments/chirp44_amp02_dt001.csv', delimiter=',', skiprows=1)
     dt = data[0, 1] - data[0, 0]
-    datas = data[:, :int(12.0 / dt)]
+    datas = data[:, :] # shift with int(3.0 / dt)
     
     t_eval = datas[0, :]
     u_data = datas[1, :]
     x_meas_pos = datas[2:4, :]
     
-    # Must detrend here as well to match what the optimizer saw!
-    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :] + 3.799) - 3.799, 7, 3)
-    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :] + 1.21) - 1.21, 7, 3)
+    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
+    x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)
     x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
     x_meas[2:4, 0] = 0
     KNOWN_KT = 2.73
@@ -24,11 +23,13 @@ if __name__ == "__main__":
     # ====================================================
     # PASTE THE LIST OUTPUT FROM optimize.py HERE!
     # ====================================================
-    p_opt = [0.00267, 0.00143, 0.00119, 0.10703, 0.09362, 0.51714, 8e-05, 0.01546, 0.05117]
+    p_opt = [0.0040934915, 0.0013381305, 0.0008817189, 0.1833209615, 0.0949814996, 0.6455604995, 0.0002478587, 0.0006822052, 0.210397423]
     
     print("Running Open-Loop Validation...")
+
     x_sim = simulate_open_loop(p_opt, u_data, x_meas, dt, KNOWN_KT, delay_steps=1)
     u_aug = augment_input(u_data, x_meas[2, :], p_opt, KNOWN_KT, delay_steps=1)
+    print(build_matrices(p_opt, 2.73))
     
     rmse_th1 = np.sqrt(np.mean((x_sim[0, :] - x_meas[0, :])**2))
     rmse_th2 = np.sqrt(np.mean((x_sim[1, :] - x_meas[1, :])**2))
