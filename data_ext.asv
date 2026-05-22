@@ -1,5 +1,5 @@
 %% main
-%clear;clc;
+clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
 h = 0.01;
@@ -7,34 +7,37 @@ TSim = 30;
 
 t = [0:h:TSim]';
 omega = 1;
-amplitude = 0.5;
-%y_input = chirp(t,0,4,4);
+amplitude = 0.15;
+y_input = chirp(t,0,10,4);
 %y_input = sin(omega* t+pi/2);
 %y_input = idinput(size(t));
-dt = zeros(size(t,1),1);
-du = amplitude*ones(size(t,1)-100,1);
-%u = amplitude * y_input;
+%dt = zeros(size(t,1),1);
+%du = amplitude*ones(size(t,1)-100,1);
+u = amplitude * y_input;
 %u = amplitude*zeros((TSim/h)+1,1);
 %dt(101:size(t,1),1) = du;
-u = dt;
+%u = dt;
 
-%for i = 1:size(u)
-%    if u(i)<0
-%        u(i) = u(i)/0.74;
-%    end
-%end
+for i = 1:size(u)
+   if u(i)<0
+       u(i) = u(i)/0.74;
+   end
+end
 simin = [t,u];
 %%
-sim rotpentemplate2
+sim rotpentemplate1
 
 y = simout.Data;
 
-theta_1 = y(:,1)-theta_1_offset;
-theta_2 = y(:,2)-theta_2_offset;
+
 
 %% calibrate
+theta_1 = y(:,1);
+theta_2 = y(:,2);
 avg_theta_1 = mean(theta_1);
 avg_theta_2 = mean(theta_2);
+max_th1 = max(theta_1);
+max_th2 = max(theta_2);
 
 %% export data
 
@@ -42,5 +45,7 @@ filename = 'expirement_data.x';
 writematrix([t,u,theta_1,theta_2],filename,'sheet',5,'Range','E1:H1501')
 
 %% chirp
-
-plot(t,y_chirp)
+pp = load("plushalfpi.mat");
+mp = load("minhalfpi.mat");
+zp = load("zero_zero.mat");
+df = [pp.ans;mp.ans;zp.ans];
