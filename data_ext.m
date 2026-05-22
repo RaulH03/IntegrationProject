@@ -1,5 +1,5 @@
 %% main
-clear;clc;
+%clear;clc;
 theta_1_offset = 3.799; %in radians
 theta_2_offset = 1.210; %in radians
 h = 0.01;
@@ -15,7 +15,7 @@ dt = zeros(size(t,1),1);
 du = amplitude*ones(size(t,1)-100,1);
 %u = amplitude * y_input;
 %u = amplitude*zeros((TSim/h)+1,1);
-dt(101:size(t,1),1) = du;
+%dt(101:size(t,1),1) = du;
 u = dt;
 
 %for i = 1:size(u)
@@ -25,7 +25,7 @@ u = dt;
 %end
 simin = [t,u];
 %%
-sim rotpentemplate2
+sim rotpentemplate1
 
 y = simout.Data;
 
