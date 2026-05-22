@@ -37,7 +37,7 @@ def _auto_derive_math():
 
     L = me.Lagrangian(N, B1, B2)
     
-    forces = [(A1, (-Kt_sym*u - b1*th1_d + b2*th2_d) * N.z), (A2, -b2*th2_d * N.z)]
+    forces = [(A1, (-Kt_sym*u - b1*th1_d + b2*(th2_d - th1_d)) * N.z), (A2, -b2*(th2_d - th1_d) * N.z)]
 
     LM = me.LagrangesMethod(L, [th1, th2], forcelist=forces, frame=N)
     LM.form_lagranges_equations()
@@ -50,7 +50,7 @@ def _auto_derive_math():
     B_sym_full = f_sym.jacobian(sm.Matrix([u]))
 
     # Evaluate at Down-Down equilibrium
-    eq_dict = {th1: 0, th2: 0, th1_d: 0, th2_d: 0, u: 0}
+    eq_dict = {th1: 0, th2: sm.pi, th1_d: 0, th2_d: 0, u: 0}
     M_eq = sm.simplify(LM.mass_matrix.subs(eq_dict))
     K_eq = sm.simplify(K_sym.subs(eq_dict))
     D_eq = sm.simplify(D_sym.subs(eq_dict))
@@ -62,7 +62,7 @@ def _auto_derive_math():
     # print(sm.latex(B_eq))
 
     # Extract lumped groupings
-    P_exprs = [M_eq[0, 0], M_eq[0, 1], M_eq[1, 1], K_eq[0, 0], K_eq[0, 1], D_eq[0, 0], D_eq[1, 1]]
+    P_exprs = [M_eq[0, 0], M_eq[0, 1], M_eq[1, 1], K_eq[0, 0], K_eq[1, 1], D_eq[0, 0], D_eq[1, 1]]
     phys_syms = (m1, m2, I1, I2, l1, l2, b1, b2, g)
     _P_funcs = [sm.lambdify(phys_syms, expr, 'numpy') for expr in P_exprs]
 
@@ -70,7 +70,7 @@ def _auto_derive_math():
     P1, P2, P3, P4, P5, P6, P7= sm.symbols('P1 P2 P3 P4 P5 P6 P7', real=True)
     M_lump = sm.Matrix([[P1, P2], [P2, P3]])
     K_lump = sm.Matrix([[P4, 0], [0, P5]])
-    D_lump = sm.Matrix([[P6, -P7],  [0, P7]])
+    D_lump = sm.Matrix([[P6+P7, -P7],  [-P7, P7]])
 
     det_sym = P1 * P3 - P2**2
     M_inv = M_lump.adjugate() / det_sym
