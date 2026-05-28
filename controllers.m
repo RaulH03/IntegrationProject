@@ -96,8 +96,8 @@ Q = diag([5e2, 1e1, 1e0, 1e0]);
 sysc = ss(A, B, C, D);
 sysd = c2d(ss(A,B,C,D),h);
 
-mpc_obj = mpc(sysc, h);
-mpc_obj = setmpcsignals(mpc_obj, 'MeasuredOutputs', 2, 'UnmeasuredOutputs', 2);
+% mpc_obj = mpc(sysc, h);
+% mpc_obj = setmpcsignals(mpc_obj, 'MeasuredOutputs', 2, 'UnmeasuredOutputs', 2);
 
 R = 1e2;
 [K,S,P] = lqr(A, B, Q, R);
