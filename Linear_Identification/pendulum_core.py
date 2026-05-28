@@ -11,7 +11,7 @@ _B_func = None
 _P_funcs = None
 
 
-def _auto_derive_math():
+def _auto_derive_math(print_dyn=False):
     """Uses SymPy to automatically derive lumped mappings and state-space matrices."""
     global _A_func, _B_func, _P_funcs
     print("Auto-deriving physics and state-space matrices via SymPy (runs once)...")
@@ -68,10 +68,11 @@ def _auto_derive_math():
         B_sym_full.subs(eq_dict)
     )  # This perfectly evaluates to [[-Kt_sym], [0]]
 
-    # print(sm.latex(M_eq))
-    # print(sm.latex(K_eq))
-    # print(sm.latex(D_eq))
-    # print(sm.latex(B_eq))
+    if print_dyn:
+        print(sm.latex(M_eq))
+        print(sm.latex(K_eq))
+        print(sm.latex(D_eq))
+        print(sm.latex(B_eq))
 
     # Extract lumped groupings
     P_exprs = [
@@ -101,7 +102,6 @@ def _auto_derive_math():
         sm.Matrix.hstack(-M_inv * K_lump, -M_inv * D_lump),
     )
 
-    # --- NEW: Use the true SymPy derivation for B ---
     B_sym = sm.Matrix.vstack(Z_mat[:, 0:1], M_inv * B_eq)
 
     _A_func = sm.lambdify((P1, P2, P3, P4, P5, P6, P7), A_sym, "numpy")
@@ -138,6 +138,9 @@ def build_matrices(p, Kt, eq="Down-Down"):
     P1, P2, P3, P4, P5, P6, P7 = p[:7]
     if eq == "Down-Up":
         P2, P5 = -P2, -P5  # Gravity flips for inverted equilibrium
+
+    elif eq == "Up-Up":
+        P4, P5 = -P4, -P5
 
     det = P1 * P3 - P2**2
     if det < 1e-6:
@@ -195,3 +198,7 @@ def simulate_open_loop(p, u_data, x_meas, dt, Kt, delay_steps=1):
     for k in range(len(u_data) - 1):
         x_sim[:, k + 1] = Ad @ x_sim[:, k] + Bd_flat * u_aug[k]
     return x_sim
+
+
+if __name__ == "__main__":
+    _auto_derive_math(print_dyn=True)
