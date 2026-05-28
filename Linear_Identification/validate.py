@@ -62,33 +62,33 @@ if __name__ == "__main__":
     # PASTE THE LIST OUTPUT FROM optimize.py HERE!
     # ====================================================
     p_opt = [
-        0.0069039564,
-        0.0009049302,
-        0.0008558306,
-        0.0474352253,
-        0.0925608918,
-        0.5875870077,
-        0.0002371847,
-        0.0059499701,
-        0.0989518884,
+        0.0071681343,
+        0.000887904,
+        0.0008317555,
+        0.039641435,
+        0.0899739911,
+        0.5857980755,
+        0.000230727,
+        0.0021062153,
+        0.0911844893,
     ]
 
     print("Running Open-Loop Validation...")
 
     A, B = build_matrices(p_opt, 2.73, eq="Down-Down")
-    print("Down-Down")
-    print(text_to_matlab_style(A))
-    print(text_to_matlab_style(B))
+    print("% Down-Down")
+    print("A =", text_to_matlab_style(A), ";")
+    print("B =", text_to_matlab_style(B), ";")
 
-    print("Down-Up")
+    print("% Down-Up")
     A, B = build_matrices(p_opt, 2.73, eq="Down-Up")
-    print(text_to_matlab_style(A))
-    print(text_to_matlab_style(B))
+    print("A =", text_to_matlab_style(A), ";")
+    print("B =", text_to_matlab_style(B), ";")
 
     A, B = build_matrices(p_opt, 2.73, eq="Up-Up")
-    print("Up-Up")
-    print(text_to_matlab_style(A))
-    print(text_to_matlab_style(B))
+    print("% Up-Up")
+    print("A =", text_to_matlab_style(A), ";")
+    print("B =", text_to_matlab_style(B), ";")
 
     x_sim = simulate_open_loop(p_opt, u_data, x_meas, dt, KNOWN_KT, delay_steps=1)
     u_aug = augment_input(u_data, x_meas[2, :], p_opt, KNOWN_KT, delay_steps=1)

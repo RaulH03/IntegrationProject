@@ -60,7 +60,7 @@ def _auto_derive_math(print_dyn=False):
     B_sym_full = f_sym.jacobian(sm.Matrix([u]))
 
     # Evaluate at Down-Down equilibrium
-    eq_dict = {th1: sm.pi, th2: sm.pi, th1_d: 0, th2_d: 0, u: 0}
+    eq_dict = {th1: 0, th2: 0, th1_d: 0, th2_d: 0, u: 0}
     M_eq = sm.simplify(LM.mass_matrix.subs(eq_dict))
     K_eq = sm.simplify(K_sym.subs(eq_dict))
     D_eq = sm.simplify(D_sym.subs(eq_dict))
