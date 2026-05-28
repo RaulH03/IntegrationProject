@@ -2,6 +2,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter, detrend
 from pendulum_core import simulate_open_loop, augment_input, build_matrices
+import re
+
+
+def text_to_matlab_style(matrix_str) -> str:
+    """
+    Converts a NumPy-style printed string into a MATLAB-style matrix string.
+    """
+    # Replace line breaks with spaces
+    matrix_str = str(matrix_str)
+    cleaned = matrix_str.replace("\n", " ")
+
+    # Replace adjacent closing and opening brackets with a semicolon
+    # This turns "...] [" into "... ; " indicating a new row in MATLAB
+    cleaned = re.sub(r"\]\s*\[", "; ", cleaned)
+
+    # Strip all remaining brackets
+    cleaned = cleaned.replace("[", "").replace("]", "")
+
+    # Collapse multiple spaces into a single space
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+    # Wrap in standard MATLAB brackets
+    return f"[{cleaned}]"
+
 
 if __name__ == "__main__":
     print("Loading data...")
@@ -51,15 +75,20 @@ if __name__ == "__main__":
 
     print("Running Open-Loop Validation...")
 
-    A, B = build_matrices(p_opt, 2.73, eq="Down-Up")
-    print("Down-Up")
-    print(A)
-    print(B)
-
-    print("Down-Down")
     A, B = build_matrices(p_opt, 2.73, eq="Down-Down")
-    print(A)
-    print(B)
+    print("Down-Down")
+    print(text_to_matlab_style(A))
+    print(text_to_matlab_style(B))
+
+    print("Down-Up")
+    A, B = build_matrices(p_opt, 2.73, eq="Down-Up")
+    print(text_to_matlab_style(A))
+    print(text_to_matlab_style(B))
+
+    A, B = build_matrices(p_opt, 2.73, eq="Up-Up")
+    print("Up-Up")
+    print(text_to_matlab_style(A))
+    print(text_to_matlab_style(B))
 
     x_sim = simulate_open_loop(p_opt, u_data, x_meas, dt, KNOWN_KT, delay_steps=1)
     u_aug = augment_input(u_data, x_meas[2, :], p_opt, KNOWN_KT, delay_steps=1)
