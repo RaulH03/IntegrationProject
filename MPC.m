@@ -1,4 +1,6 @@
-[A, B, C, D] = Dynamics(a = 1);
+clear;clc;
+h = 0.01;
+[A, B, C, D] = Dynamics(1);
 sysc = ss(A, B, C, D);
 sysd = c2d(ss(A,B,C,D),h);
 

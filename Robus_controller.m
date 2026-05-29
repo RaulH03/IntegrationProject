@@ -8,15 +8,19 @@ clear;clc;
 %      0.
 %     -459.04651634
 %     -485.38233599];
-[A,B,~,~] = Dynamics(1);
+[A,B,C_c,D_c] = Dynamics(1);
 C = eye(4);
 
 D = [0;
   0;0;0];
 h = 0.01;
+
+
+R1 = diag([1e-2,1e-2,1e-2,1e-2]);
+R2 = diag([1e-2, 1e-2]);
 s=tf('s');
 sysc = ss(A, B, C, D);
-sysd = c2d(ss(A,B,C,D),h);
+sysd = c2d(ss(A,B,C_c,D_c),h);
 
 
 
