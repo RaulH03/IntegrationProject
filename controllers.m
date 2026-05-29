@@ -99,7 +99,7 @@ sysd = c2d(ss(A,B,C,D),h);
 % mpc_obj = mpc(sysc, h);
 % mpc_obj = setmpcsignals(mpc_obj, 'MeasuredOutputs', 2, 'UnmeasuredOutputs', 2);
 
-R = 1e2;
+R = 5e2;
 [K,S,P] = lqr(A, B, Q, R);
 R1 = diag([1e-2,1e-2,1e-2,1e-2]);
 R2 = diag([1e-2, 1e-2]);

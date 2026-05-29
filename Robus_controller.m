@@ -1,3 +1,5 @@
+clear;clc;
+
 A = [0.00000000e+00  0.00000000e+00  1.00000000e+00  0.00000000e+00
     0.00000000e+00  0.00000000e+00  0.00000000e+00  1.00000000e+00
     -7.97618129e+00  1.64569311e+01 -9.87998251e+01 -2.28807820e-03
@@ -56,7 +58,7 @@ P_sim2 = minreal(P_sim);
 size(P_sim2)
 
 %%% Synthesising the controller %%%
-[K, CL, GAM, INFO] = hinfsyn(P_sim, 4, 1);
+[K, CL, GAM, INFO] = hinfsyn(P_sim, 2, 1);
 %S = eye(2) / (eye(2)+G*K);
 %N_norm = lft(P_sim2,K);
 %mu_s = norm(N_norm,inf)
