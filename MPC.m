@@ -9,7 +9,7 @@ Bd = sysd.B;
 
 n_states = 4;
 n_inputs = 1;
-N = 20;
+N = 5;
 
 Q = diag([5e2, 1e1, 1e1, 1e0]);
 R = 5e2;
@@ -18,8 +18,6 @@ R = 5e2;
 R1 = diag([1e-2,1e-2,1e-2,1e-2]);
 R2 = diag([1e-2, 1e-2]);
 
-Ad
-Bd
 
 [K, P, CLP] = dlqr(Ad, Bd, Q, R);
 K = -K;
