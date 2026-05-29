@@ -28,9 +28,9 @@ M = 2.4; % bound on the hinv norm
 wb1 = 0.3; % desired bandwith
 A = 1/10000; % attinuation of system
 Wp11 = (s/M+wb1)/(s+wb1*A);
-Wp = [Wp11,0,0,0;
-     0,Wp11,0,0;
-     0,0,Wp11,0;
+Wp = [0.1,0,0,0;
+     0,0.1,0,0;
+     0,0,0.1,0;
      0,0,0,Wp11];
 Wu22 = ((5*10^-3)*s^2 + (7*10^-4) * s + (5*10^-5))/(s^2 + s*14*10^-4 + 10^-6);
 Wu = [Wu22];
