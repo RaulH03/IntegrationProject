@@ -8,7 +8,7 @@ clear;clc;
 %      0.
 %     -459.04651634
 %     -485.38233599];
-[A,B,~,~] = Dynamics(1)
+[A,B,~,~] = Dynamics(1);
 C = eye(4);
 
 D = [0;
@@ -65,6 +65,6 @@ size(P_sim2)
 %INFO;
 K;
 
-%K_sim = minreal(K);
+K_sim = minreal(K);
 %K_sim.u = 'y_e';
 %K_sim.y = 'u';
