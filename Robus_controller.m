@@ -53,12 +53,12 @@ Wp_sim = Wp;
 Wp_sim.u = 'y_plant';
 Wp_sim.y = 'z1';
 
-P_sim = connect(G_sim, Wu_sim , Wp_sim, e_sim, {'u'},{ 'z1';'z2';'y_plant'});
+P_sim = connect(G_sim, Wu_sim , Wp_sim, {'u'},{ 'z1';'z2';'y_plant'});
 P_sim2 = minreal(P_sim);
 size(P_sim2)
 
 %%% Synthesising the controller %%%
-[K, CL, GAM, INFO] = hinfsyn(P_sim, 2, 1);
+[K, CL, GAM, INFO] = hinfsyn(P_sim, 4, 1);
 %S = eye(2) / (eye(2)+G*K);
 %N_norm = lft(P_sim2,K);
 %mu_s = norm(N_norm,inf)

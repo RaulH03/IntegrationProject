@@ -18,11 +18,11 @@ u = amplitude * y_input;
 %dt(101:size(t,1),1) = du;
 %u = dt;
 
-% for i = 1:size(u)
-%    if u(i)<0
-%        u(i) = u(i)/0.74;
-%    end
-% end
+for i = 1:size(u)
+   if u(i)<0
+       u(i) = u(i)/0.74;
+   end
+end
 simin = [t,u];
 %%
 sim rotpentemplate1
