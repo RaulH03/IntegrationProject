@@ -139,7 +139,7 @@ def build_matrices(p, Kt, eq="Down-Down"):
     if eq == "Down-Up":
         P2, P5 = -P2, -P5  # Gravity flips for inverted equilibrium
 
-    elif eq == "Up-Up":
+    if eq == "Up-Up":
         P4, P5 = -P4, -P5
 
     det = P1 * P3 - P2**2
