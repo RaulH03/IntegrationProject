@@ -28,12 +28,12 @@ M = 2.4; % bound on the hinv norm
 wb1 = 0.3; % desired bandwith
 A = 1/10000; % attinuation of system
 Wp11 = (s/M+wb1)/(s+wb1*A);
-Wp = [0.1,0,0,0;
-     0,0.1,0,0;
-     0,0,0.1,0;
+Wp = [10,0,0,0;
+     0,10,0,0;
+     0,0,1,0;
      0,0,0,Wp11];
 Wu22 = ((5*10^-3)*s^2 + (7*10^-4) * s + (5*10^-5))/(s^2 + s*14*10^-4 + 10^-6);
-Wu = [Wu22];
+Wu = [10];
 Wt = [];
 
 
@@ -45,7 +45,7 @@ G_sim = G;
 G_sim.u = 'u';
 G_sim.y = 'y_plant';
 
-Wu_sim = Wu;
+Wu_sim = tf(Wu);
 Wu_sim.u = 'u';
 Wu_sim.y = 'z2';
 
@@ -53,7 +53,7 @@ Wu_sim.y = 'z2';
 
 %e_sim = sumblk('y_e = y_plant', 4); % No reference, no negative feedback
 
-Wp_sim = Wp;
+Wp_sim = tf(Wp);
 Wp_sim.u = 'y_plant';
 Wp_sim.y = 'z1';
 
