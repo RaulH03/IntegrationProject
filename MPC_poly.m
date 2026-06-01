@@ -25,6 +25,41 @@ theta2_max = deg2rad(90);
 
 [H_f, h_f] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K, theta1_max, theta2_max, u_max);
 
+
+Q_bar = blkdiag(kron(eye(N-1), Q), P);
+R_bar = kron(eye(N), R);
+
+Sx = zeros(n_states * N, n_states);
+Su = zeros(n_states * N, n_inputs * N);
+
+for i = 1:N
+    Sx((i-1)*n_states+1 : i*n_states, :) = Ad^i;
+    for j = 1:i
+        Su((i-1)*n_states+1 : i*n_states, (j-1)*n_inputs+1 : j*n_inputs) = (Ad^(i-j)) * Bd;
+    end
+end
+
+H_qp = 2 * (Su' * Q_bar * Su + R_bar);
+H_qp = (H_qp + H_qp') / 2; % Ensure perfect symmetry to prevent solver warnings
+F_qp = 2 * Su' * Q_bar * Sx; % f will be calculated in real-time as: f = F_qp * x_curr
+
+A_stage = [ 1  0  0  0; 
+           -1  0  0  0; 
+            0  1  0  0; 
+            0 -1  0  0];
+b_stage = [theta1_max; theta1_max; theta2_max; theta2_max];
+
+A_block = blkdiag(kron(eye(N-1), A_stage), H_f);
+b_block = [repmat(b_stage, N-1, 1); h_f];
+
+% Substitute X = Sx*x_curr + Su*U into constraints: A_block * (Sx*x + Su*U) <= b_block
+% Rearranged for U: (A_block * Su) * U <= b_block - (A_block * Sx) * x_curr
+A_ineq = A_block * Su;
+b_ineq_base = b_block;
+S_ineq = A_block * Sx; % We subtract (S_ineq * x_curr) from b_ineq_base in real-time
+
+
+
 function [H_set, h_set] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K, theta1_max, theta2_max, u_max)
     A_cl = Ad - Bd*K;
     tol = 1e-6; 
@@ -88,35 +123,3 @@ function [H_set, h_set] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K,
         end
     end
 end
-
-Q_bar = blkdiag(kron(eye(N-1), Q), P);
-R_bar = kron(eye(N), R);
-
-Sx = zeros(n_states * N, n_states);
-Su = zeros(n_states * N, n_inputs * N);
-
-for i = 1:N
-    Sx((i-1)*n_states+1 : i*n_states, :) = Ad^i;
-    for j = 1:i
-        Su((i-1)*n_states+1 : i*n_states, (j-1)*n_inputs+1 : j*n_inputs) = (Ad^(i-j)) * Bd;
-    end
-end
-
-H_qp = 2 * (Su' * Q_bar * Su + R_bar);
-H_qp = (H_qp + H_qp') / 2; % Ensure perfect symmetry to prevent solver warnings
-F_qp = 2 * Su' * Q_bar * Sx; % f will be calculated in real-time as: f = F_qp * x_curr
-
-A_stage = [ 1  0  0  0; 
-           -1  0  0  0; 
-            0  1  0  0; 
-            0 -1  0  0];
-b_stage = [theta1_max; theta1_max; theta2_max; theta2_max];
-
-A_block = blkdiag(kron(eye(N-1), A_stage), H_f);
-b_block = [repmat(b_stage, N-1, 1); h_f];
-
-% Substitute X = Sx*x_curr + Su*U into constraints: A_block * (Sx*x + Su*U) <= b_block
-% Rearranged for U: (A_block * Su) * U <= b_block - (A_block * Sx) * x_curr
-A_ineq = A_block * Su;
-b_ineq_base = b_block;
-S_ineq = A_block * Sx; % We subtract (S_ineq * x_curr) from b_ineq_base in real-time
