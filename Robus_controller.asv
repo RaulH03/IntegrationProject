@@ -39,8 +39,6 @@ Wt = [];
 
 
 G = sysc;
-
-[K_m , ~ , ~, ~]= mixsyn(G,Wp,Wu,Wt);
 size(G)
 %%% defining the block diagram %%%
 G_sim = G;
@@ -64,12 +62,12 @@ P_sim2 = minreal(P_sim);
 size(P_sim2)
 
 %%% Synthesising the controller %%%
-%[K, CL, GAM, INFO] = hinfsyn(P_sim, 4, 1);
+[K, CL, GAM, INFO] = hinfsyn(P_sim, 4, 1);
 %S = eye(2) / (eye(2)+G*K);
 %N_norm = lft(P_sim2,K);
 %mu_s = norm(N_norm,inf)
 %INFO;
-%K;
+K;
 
 K_sim = minreal(K);
 %K_sim.u = 'y_e';
