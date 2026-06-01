@@ -40,7 +40,7 @@ Wt = [];
 
 G = sysc;
 
-[K_m , ~ , ~, ~]= mixsyn(G,Wp,Wu,Wt);
+[K, ~ , ~, ~]= mixsyn(G,Wp,Wu,Wt);
 size(G)
 %%% defining the block diagram %%%
 G_sim = G;
