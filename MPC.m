@@ -9,7 +9,7 @@ Bd = sysd.B;
 
 n_states = 4;
 n_inputs = 1;
-N = 5;
+N = 7;
 
 Q = diag([5e2, 1e1, 1e1, 1e0]);
 R = 5e2;
