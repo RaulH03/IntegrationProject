@@ -49,15 +49,15 @@ Wu_sim = tf(Wu);
 Wu_sim.u = 'u';
 Wu_sim.y = 'z2';
 
-%y_sim = sumblk('y_meas = y_plant + y_dis',4);
+y_sim = sumblk('y_meas = y_plant + y_dis',4);
 
-%e_sim = sumblk('y_e = y_plant', 4); % No reference, no negative feedback
+e_sim = sumblk('y_e = y_plant', 4); % No reference, no negative feedback
 
 Wp_sim = tf(Wp);
-Wp_sim.u = 'y_plant';
+Wp_sim.u = 'y_meas';
 Wp_sim.y = 'z1';
 
-P_sim = connect(G_sim, Wu_sim , Wp_sim, {'u'},{ 'z1';'z2';'y_plant'});
+P_sim = connect(G_sim, Wu_sim ,y_sim,e_sim, Wp_sim, {'y_dis';'u'},{ 'z1';'z2';'y_e'});
 P_sim2 = minreal(P_sim);
 size(P_sim2)
 
