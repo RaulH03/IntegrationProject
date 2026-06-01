@@ -16,7 +16,7 @@ R1 = diag([1e-2, 1e-2, 1e-2, 1e-2]);
 R2 = diag([1e-2, 1e-2]);
 
 [K, P, CLP] = dlqr(Ad, Bd, Q, R);
-K = -K; 
+
 
 u_max = 2.0;
 theta1_max = deg2rad(90);
@@ -32,22 +32,35 @@ function [H_set, h_set] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K,
     F = [1  0  0  0
         -1  0  0  0
          0  1  0  0
-         0 -1  0  0];
+         0 -1  0  0
+         0  0  1  0
+         0  0 -1  0
+         0  0  0  1
+         0  0  0 -1];
+
     F = [F
          K
         -K];
+
+    theta1_dot_max = 100;
+    theta2_dot_max = 100;
+
+
     g = [theta1_max
          theta1_max
          theta2_max
          theta2_max
+         theta1_dot_max
+         theta1_dot_max
+         theta2_dot_max
+         theta2_dot_max
          u_max
          u_max];
          
     H_set = F;
     h_set = g;
-    options = optimoptions('linprog', 'Display', 'none');
     
-    for i = 1:50
+    for i = 1:100
         H_new = F*(A_cl^i);
         added_any = false;
 
@@ -55,7 +68,7 @@ function [H_set, h_set] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K,
             c = H_new(rowid, :)';
             b_val = g(rowid);
             f = -c;
-            [~, fval, exitflag] = linprog(f, H_set, h_set, [], [], [], [], options);
+            [~, fval, exitflag, ~] = linprog(f, H_set, h_set);
             
             if exitflag == 1 
                 max_val = -fval;
