@@ -58,6 +58,9 @@ A_ineq = A_block * Su;
 b_ineq_base = b_block;
 S_ineq = A_block * Sx; % We subtract (S_ineq * x_curr) from b_ineq_base in real-time
 
+F_ref = -2 * Su' * Q_bar;
+H_poly = H;
+
 
 
 function [H_set, h_set] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K, theta1_max, theta2_max, u_max)
