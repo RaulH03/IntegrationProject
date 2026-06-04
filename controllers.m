@@ -92,15 +92,20 @@ C = [1, 0, 0, 0;
 
 D = [0;
   0];
+% equilibrium
+% Q = diag([5e2, 1e1, 1e1, 1e0]);
+% R = 5e2;
 
-Q = diag([5e2, 1e1, 1e1, 1e0]);
+% reference tracking
+Q = diag([6e2, 1e1, 1e1, 1e0]);
+R = 3e2;
 sysc = ss(A, B, C, D);
 sysd = c2d(ss(A,B,C,D),h);
 
 % mpc_obj = mpc(sysc, h);
 % mpc_obj = setmpcsignals(mpc_obj, 'MeasuredOutputs', 2, 'UnmeasuredOutputs', 2);
 
-R = 5e2;
+
 [K,S,P] = lqr(A, B, Q, R);
 R1 = diag([1e-2,1e-2,1e-2,1e-2]);
 R2 = diag([1e-2, 1e-2]);
