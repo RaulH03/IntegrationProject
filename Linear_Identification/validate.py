@@ -30,32 +30,43 @@ def text_to_matlab_style(matrix_str) -> str:
 if __name__ == "__main__":
     print("Loading data...")
     # data = np.loadtxt('experiments/idinput_dt005_amp02.csv', delimiter=',', skiprows=1)
-    data = np.loadtxt(
-        "experiments/NEW_chirp44_amp015_dt001.csv", delimiter=",", skiprows=1
-    )
-    dt = data[0, 1] - data[0, 0]
-    datas = data[:, :]  # shift with int(3.0 / dt)
+    # data = np.loadtxt(
+    #     "experiments/NEW_chirp44_amp015_dt001.csv", delimiter=",", skiprows=1
+    # )
+    # dt = data[0, 1] - data[0, 0]
+    # datas = data[:, :]  # shift with int(3.0 / dt)
 
-    t_eval = datas[0, :]
-    u_data = datas[1, :]
-    x_meas_pos = datas[2:4, :]
+    # t_eval = datas[0, :]
+    # u_data = datas[1, :]
+    # x_meas_pos = datas[2:4, :]
 
-    # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
-    # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)  + x_meas_pos[0, :]
-    # x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
+    # # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
+    # # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3)  + x_meas_pos[0, :]
+    # # x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
 
-    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3)
-    x_meas_pos[1, :] = (
-        savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :]
-    )
-    x_meas = np.vstack(
-        (
-            x_meas_pos,
-            np.gradient(x_meas_pos[0, :], dt),
-            np.gradient(x_meas_pos[1, :], dt),
-        )
-    )
-    x_meas[2:4, 0] = 0
+    # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3)
+    # x_meas_pos[1, :] = (
+    #     savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :]
+    # )
+    # x_meas = np.vstack(
+    #     (
+    #         x_meas_pos,
+    #         np.gradient(x_meas_pos[0, :], dt),
+    #         np.gradient(x_meas_pos[1, :], dt),
+    #     )
+    # )
+    # x_meas[2:4, 0] = 0
+
+    data = np.load("experiments/data_processed_test.npz")
+    print(sorted(data))
+
+    x_meas = data["x_meas"]
+    u_data = data["u_data"]
+    t_eval = data["t_eval"]
+    dt = t_eval[1] - t_eval[0]
+
+    print(x_meas[0, 0])
+
     KNOWN_KT = 2.73
 
     # ====================================================
