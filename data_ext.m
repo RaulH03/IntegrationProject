@@ -7,8 +7,8 @@ TSim = 30;
 
 t = [0:h:TSim]';
 omega = 1;
-amplitude = 0.2;
-y_input = chirp(t,0.5,10,4);
+amplitude = 0.15;
+y_input = chirp(t,0.3,10,4);
 %y_input = sin(omega* t+pi/2);
 %y_input = idinput(size(t));
 % dt = zeros(size(t,1),1);
