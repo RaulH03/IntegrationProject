@@ -57,15 +57,12 @@ if __name__ == "__main__":
     # )
     # x_meas[2:4, 0] = 0
 
-    data = np.load("experiments/data_processed_test.npz")
-    print(sorted(data))
+    data = np.load("experiments/chirp_05_10_4_amp015_processed.npz")
 
     x_meas = data["x_meas"]
     u_data = data["u_data"]
     t_eval = data["t_eval"]
     dt = t_eval[1] - t_eval[0]
-
-    print(x_meas[0, 0])
 
     KNOWN_KT = 2.73
 
@@ -73,15 +70,15 @@ if __name__ == "__main__":
     # PASTE THE LIST OUTPUT FROM optimize.py HERE!
     # ====================================================
     p_opt = [
-        0.0071681343,
-        0.000887904,
-        0.0008317555,
-        0.039641435,
-        0.0899739911,
-        0.5857980755,
-        0.000230727,
-        0.0021062153,
-        0.0911844893,
+        0.0080292989,
+        0.0009379699,
+        0.0007661059,
+        0.2989530067,
+        0.0824511483,
+        0.7179029697,
+        8.43292e-05,
+        0.0021265894,
+        0.0901807409,
     ]
 
     print("Running Open-Loop Validation...")

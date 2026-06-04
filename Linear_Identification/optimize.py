@@ -15,7 +15,7 @@ def objective_global(p, u_data, x_meas, dt, Kt):
     mse_dq2 = np.mean((x_sim[3, :] - x_meas[3, :]) ** 2)
 
     # Weight positions heavily, keep velocities to constrain explosions
-    return (mse_th1 * 1.0) + (mse_th2 * 5.0) + (mse_dq1 * 0.1) + (mse_dq2 * 0.01)
+    return (mse_th1 * 1.0) + (mse_th2 * 1.0) + (mse_dq1 * 0.1) + (mse_dq2 * 0.01)
 
 
 if __name__ == "__main__":
@@ -67,32 +67,39 @@ if __name__ == "__main__":
     de_bounds = list(zip(lower_bounds, upper_bounds))
 
     # 3. Load & Process Data
-    data = np.loadtxt(
-        "experiments/NEW_chirp44_amp015_dt001.csv", delimiter=",", skiprows=1
-    )
-    dt = data[0, 1] - data[0, 0]
-    datas = data  # [:, :int(5.0 / dt)]
+    # data = np.loadtxt(
+    #     "experiments/NEW_chirp44_amp015_dt001.csv", delimiter=",", skiprows=1
+    # )
+    # dt = data[0, 1] - data[0, 0]
+    # datas = data  # [:, :int(5.0 / dt)]
 
-    u_data = datas[1, :]
-    x_meas_pos = datas[2:4, :]
-    # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :] + 3.799) - 3.799, 7, 3)
-    # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :] + 1.21) - 1.21, 7, 3)
-    # # skip offset compensation
-    # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
-    # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3) + x_meas_pos[0, :]
-    # x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
+    # u_data = datas[1, :]
+    # x_meas_pos = datas[2:4, :]
+    # # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :] + 3.799) - 3.799, 7, 3)
+    # # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :] + 1.21) - 1.21, 7, 3)
+    # # # skip offset compensation
+    # # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]) - 3.799, 7, 3)
+    # # x_meas_pos[1, :] = savgol_filter(np.unwrap(x_meas_pos[1, :]) - 1.21, 7, 3) + x_meas_pos[0, :]
+    # # x_meas = np.vstack((x_meas_pos, np.gradient(x_meas_pos[0, :], dt), np.gradient(x_meas_pos[1, :], dt)))
 
-    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3)
-    x_meas_pos[1, :] = (
-        savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :]
-    )
-    x_meas = np.vstack(
-        (
-            x_meas_pos,
-            np.gradient(x_meas_pos[0, :], dt),
-            np.gradient(x_meas_pos[1, :], dt),
-        )
-    )
+    # x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3)
+    # x_meas_pos[1, :] = (
+    #     savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :]
+    # )
+    # x_meas = np.vstack(
+    #     (
+    #         x_meas_pos,
+    #         np.gradient(x_meas_pos[0, :], dt),
+    #         np.gradient(x_meas_pos[1, :], dt),
+    #     )
+    # )
+
+    data = np.load("experiments/chirp_05_10_4_amp015_processed.npz")
+
+    x_meas = data["x_meas"]
+    u_data = data["u_data"]
+    t_eval = data["t_eval"]
+    dt = t_eval[1] - t_eval[0]
 
     # 4. Run Optimizer
     print("\nRunning Global N-Step Horizon Optimization (This will take a minute)...")

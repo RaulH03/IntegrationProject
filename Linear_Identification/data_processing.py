@@ -2,7 +2,7 @@ import numpy as np
 from scipy.signal import savgol_filter, butter, filtfilt
 
 if __name__ == "__main__":
-    data = np.loadtxt("experiments/chirp_05_10_4_amp02.csv", delimiter=",", skiprows=1)
+    data = np.loadtxt("experiments/chirp_05_10_4_amp015.csv", delimiter=",", skiprows=1)
     dt = data[0, 1] - data[0, 0]
     datas = data
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     )
 
     np.savez(
-        "experiments/chirp_05_10_4_amp02_processed.npz",
+        "experiments/chirp_05_10_4_amp015_processed.npz",
         t_eval=t_eval,
         u_data=u_data,
         x_meas=x_meas,
