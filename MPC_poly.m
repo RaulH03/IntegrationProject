@@ -7,9 +7,9 @@ Ad = sysd.A;
 Bd = sysd.B;
 n_states = 4;
 n_inputs = 1;
-N = 100;
-Q = diag([5e2, 1e1, 1e1, 1e0]);
-R = 5e2;
+N = 200;
+Q = diag([6e2, 1e1, 1e1, 1e0]);
+R = 3e2;
 
 % Kalman weights 
 R1 = diag([1e-2, 1e-2, 1e-2, 1e-2]);
@@ -59,7 +59,7 @@ b_ineq_base = b_block;
 S_ineq = A_block * Sx; % We subtract (S_ineq * x_curr) from b_ineq_base in real-time
 
 F_ref = -2 * Su' * Q_bar;
-H_poly = H;
+H_poly = H_f;
 
 
 

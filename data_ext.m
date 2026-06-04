@@ -7,16 +7,16 @@ TSim = 30;
 
 t = [0:h:TSim]';
 omega = 1;
-amplitude = 0.15;
-y_input = chirp(t,0,10,4);
+amplitude = 0.2;
+y_input = chirp(t,0.5,10,4);
 %y_input = sin(omega* t+pi/2);
 %y_input = idinput(size(t));
-%dt = zeros(size(t,1),1);
-%du = amplitude*ones(size(t,1)-100,1);
+% dt = zeros(size(t,1),1);
+% du = amplitude*ones(size(t,1)-100,1);
 u = amplitude * y_input;
 %u = amplitude*zeros((TSim/h)+1,1);
-%dt(101:size(t,1),1) = du;
-%u = dt;
+% dt(101:size(t,1),1) = du;
+% u = dt;
 
 for i = 1:size(u)
    if u(i)<0
@@ -25,7 +25,7 @@ for i = 1:size(u)
 end
 simin = [t,u];
 %%
-sim rotpentemplate1
+sim rotpen_data
 
 y = simout.Data;
 

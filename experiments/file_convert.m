@@ -1,3 +1,3 @@
-T = load("NEW_chirp_amp015_dt001.mat");
+T = load("chirp_05_10_4_amp02.mat");
 D = table(T.ans);
-writetable(D,'NEW_chirp_amp015_dt001.csv')
+writetable(D,'chirp_05_10_4_amp02.csv')
