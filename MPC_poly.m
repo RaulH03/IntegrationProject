@@ -7,7 +7,7 @@ Ad = sysd.A;
 Bd = sysd.B;
 n_states = 4;
 n_inputs = 1;
-N = 200;
+N = 100;
 Q = diag([6e2, 1e1, 1e1, 1e0]);
 R = 3e2;
 
