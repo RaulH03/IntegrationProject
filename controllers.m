@@ -102,12 +102,12 @@ h = 0.01;
 % R = 5e2;
 
 % equilibrium
-Q = diag([1/(deg2rad(45)^2), 1/(deg2rad(5)^2), 1/(0.2^2), 1/(0.2^2)]);
-R = 1;
+%Q = diag([1/(deg2rad(45)^2), 1/(deg2rad(5)^2), 1/(0.2^2), 1/(0.2^2)]);
+%R = 1;
 
 % reference tracking
-% Q = diag([6e2, 1e1, 1e1, 1e0]);
-% R = 3e2;
+Q = diag([6e2, 1e1, 1e1, 1e0]);
+R = 3e2;
 sysc = ss(A, B, C, D);
 sysd = c2d(ss(A,B,C,D),h);
 
@@ -125,9 +125,12 @@ R2 = diag([0.018039541207762, 0.017742484041180]);
 [L, ~, ~] = dlqr(Ad', C', R1, R2);
 L = L';
 L
-
+P
 eigvals_Kal = eig(Ad - L*C)
 ct_eigvals_kal = log(eigvals_Kal)/h
+
+eigvals_LQR = eig(Ad - Bd*K)
+ct_eigvals_LQR = log(eigvals_LQR)/h
 % K
 TSim = 60;
 
