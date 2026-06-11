@@ -126,7 +126,8 @@ R2 = diag([0.018039541207762, 0.017742484041180]);
 L = L';
 L
 
-eig(Ad - L*C)
+eigvals_Kal = eig(Ad - L*C)
+ct_eigvals_kal = log(eigvals_Kal)/h
 % K
 
 
