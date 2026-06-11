@@ -10,10 +10,11 @@ scale2 = 4.932936598764020;
 %down up
 % eq1 = 3.806622000341846/scale1 *2*pi;
 % eq2 = 1.189150569834988/scale2 *2*pi + pi + 2*pi/360*7.5;
-deg_to_add = 0;
+deg_to_add = 13;
+eq_deg = 9.5;
 %up up
 eq1 = 3.806622000341846/scale1 *2*pi+ pi - 2*pi/360*deg_to_add;
-eq2 = 1.189150569834988/scale2 *2*pi - 2*pi/360*10 + 2*pi/360*deg_to_add; %low 7
+eq2 = 1.189150569834988/scale2 *2*pi - 2*pi/360*eq_deg + 2*pi/360*deg_to_add; %low 7
 
 
 th1 = mod(th1in/scale1*2*pi - eq1 +pi, 2*pi) -pi;

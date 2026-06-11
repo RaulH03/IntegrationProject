@@ -1,5 +1,5 @@
 clear; clc;
-h = 0.01;
+h = 0.05;
 [A, B, C, D] = Dynamics(1); 
 sysc = ss(A, B, C, D);
 sysd = c2d(sysc, h);
@@ -7,18 +7,18 @@ Ad = sysd.A;
 Bd = sysd.B;
 n_states = 4;
 n_inputs = 1;
-N = 100;
-Q = diag([6e2, 1e1, 1e1, 1e0]);
-R = 3e2;
+N = 20;
+Q = diag([1/(deg2rad(45)^2), 1/(deg2rad(5)^2), 1/(0.2^2), 1/(0.2^2)]);
+R = 1;
 
 % Kalman weights 
-R1 = diag([1e-2, 1e-2, 1e-2, 1e-2]);
-R2 = diag([1e-2, 1e-2]);
+R1 = diag([1e-4,1e-4,5e-1,5e-1]);
+R2 = diag([0.018039541207762, 0.017742484041180]);
 
 [K, P, CLP] = dlqr(Ad, Bd, Q, R);
 
 
-u_max = 2.0;
+u_max = 1.0;
 theta1_max = deg2rad(90);
 theta2_max = deg2rad(90);
 
