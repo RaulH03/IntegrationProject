@@ -129,17 +129,18 @@ L
 eigvals_Kal = eig(Ad - L*C)
 ct_eigvals_kal = log(eigvals_Kal)/h
 % K
-TSim = 60;
+TSim = 120;
 
 t = [0:h:TSim]';
 y_input = chirp(t,0,60,0.25,"linear",90);
-%y_input = ones(size(t,1),1);
-%y_input = zeros(size(t,1),1);
+% y_input = -0.5*ones(size(t,1),1);
+% y_input = zeros(size(t,1),1);
 % y_input = sin(t/2);
 amplitude = 1;
 u = amplitude * y_input;
 C_f = [1,0,0,0];
 k_f = -1/(C_f*inv(A-B*K)*B);
+N_bar = k_f*3.5;
 u_ref = 3*k_f*u;
 ref = [t,u_ref];
 y_ref = [t,u];
