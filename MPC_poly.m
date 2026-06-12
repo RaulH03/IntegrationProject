@@ -7,7 +7,7 @@ Ad = sysd.A;
 Bd = sysd.B;
 n_states = 4;
 n_inputs = 1;
-N = 20;
+N = 35;
 Q = diag([1/(deg2rad(45)^2), 1/(deg2rad(5)^2), 1/(0.2^2), 1/(0.2^2)]);
 R = 1;
 
@@ -39,7 +39,7 @@ for i = 1:N
     end
 end
 
-H_qp = Su' * Q_bar * Su + R_bar;
+H_qp = 2*(Su' * Q_bar * Su + R_bar);
 % H_qp = (H_qp + H_qp') / 2; % Ensure perfect symmetry to prevent solver warnings
 F_qp = 2 * Su' * Q_bar * Sx; % f will be calculated in real-time as: f = F_qp * x_curr
 

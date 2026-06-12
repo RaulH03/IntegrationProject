@@ -39,8 +39,8 @@ for i = 1:N
     end
 end
 
-H_qp = (Su' * Q_bar * Su + R_bar);
-H_qp = (H_qp + H_qp') / 2; % Ensure perfect symmetry to prevent solver warnings
+H_qp = 2*(Su' * Q_bar * Su + R_bar);
+% H_qp = (H_qp + H_qp') / 2; % Ensure perfect symmetry to prevent solver warnings
 F_qp = 2 * Su' * Q_bar * Sx; % f will be calculated in real-time as: f = F_qp * x_curr
 
 A_stage = [ 1  0  0  0; 
@@ -58,9 +58,9 @@ A_ineq = A_block * Su;
 b_ineq_base = b_block;
 S_ineq = A_block * Sx; % We subtract (S_ineq * x_curr) from b_ineq_base in real-time
 
-F_ref = -2 * Su' * Q_bar;
-H_poly = H_f;
-
+lb = -u_max * ones(N, 1);
+ub =  u_max * ones(N, 1);
+x0 = zeros(N, 1);
 
 
 function [H_set, h_set] = compute_terminal_polyhedral_double_pendulum(Ad, Bd, K, theta1_max, theta2_max, u_max)
