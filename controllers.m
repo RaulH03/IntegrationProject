@@ -133,12 +133,12 @@ ct_eigvals_kal = log(eigvals_Kal)/h
 eigvals_LQR = eig(Ad - Bd*K)
 ct_eigvals_LQR = log(eigvals_LQR)/h
 % K
-TSim = 120;
+TSim = 30;
 
 t = [0:h:TSim]';
-y_input = chirp(t,0,60,0.25,"linear",90);
+% y_input = chirp(t,0,60,0.25,"linear",90);
 % y_input = -0.5*ones(size(t,1),1);
-% y_input = zeros(size(t,1),1);
+y_input = zeros(size(t,1),1);
 % y_input = sin(t/2);
 amplitude = 1;
 u = amplitude * y_input;

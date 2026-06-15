@@ -13,7 +13,7 @@ scale2 = 4.932936598764020;
 deg_to_add = 13;
 eq_deg = 9.5;
 %up up
-eq1 = 3.806622000341846/scale1 *2*pi+ pi - 2*pi/360*deg_to_add;
+eq1 = 3.806622000341846/scale1 *2*pi +pi - 2*pi/360*deg_to_add;
 eq2 = 1.189150569834988/scale2 *2*pi - 2*pi/360*eq_deg + 2*pi/360*deg_to_add; %low 7
 
 
