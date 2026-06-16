@@ -1,6 +1,7 @@
 % Load the data
-dataStruct = load('MPC_up_up_equili.mat');
+dataStruct = load('LQR_up_up_ref_trac.mat');
 data = dataStruct.ans';
+% data = data(1:500, :);
 
 % Extract columns
 time         = data(:, 1);
@@ -36,6 +37,7 @@ plot(time, reference, 'k--', 'LineWidth', 1.5);
 plot(time, meas_1, 'LineWidth', 1.5, 'Color', [0 0.4470 0.7410]);
 plot(time, est_1, '-.', 'LineWidth', 1.5, 'Color', [0.8500 0.3250 0.0980]);
 hold off;
+ylim([-1, 1]);
 ylabel('Link 1 Angle', 'FontWeight', 'bold');
 legend('Reference', 'Measured', 'Estimated', 'Location', 'northeast');
 grid on; set(gca, 'XTickLabel', []);
@@ -46,6 +48,7 @@ hold on;
 plot(time, meas_2_abs, 'LineWidth', 1.5, 'Color', [0.4660 0.6740 0.1880]);
 plot(time, est_2, '-.', 'LineWidth', 1.5, 'Color', [0.6350 0.0780 0.1840]);
 hold off;
+ylim([-0.1, 0.1]);
 ylabel('Link 2 Angle', 'FontWeight', 'bold');
 legend('Measured (abs)', 'Estimated', 'Location', 'northeast');
 grid on; set(gca, 'XTickLabel', []);
@@ -56,6 +59,7 @@ hold on;
 plot(time, est_speed_1, 'LineWidth', 1.5);
 plot(time, est_speed_2, 'LineWidth', 1.5);
 hold off;
+ylim([-2, 2]);
 xlabel('Time', 'FontWeight', 'bold');
 ylabel('Angular Vel', 'FontWeight', 'bold');
 legend('Est Velocity 1', 'Est Velocity 2', 'Location', 'northeast');
