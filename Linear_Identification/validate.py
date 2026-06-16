@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # )
     # x_meas[2:4, 0] = 0
 
-    data = np.load("experiments/chirp_05_10_4_amp015_processed.npz")
+    data = np.load("experiments/chirp_05_10_4_amp015_processed_unfiltered.npz")
 
     x_meas = data["x_meas"]
     u_data = data["u_data"]
@@ -70,15 +70,15 @@ if __name__ == "__main__":
     # PASTE THE LIST OUTPUT FROM optimize.py HERE!
     # ====================================================
     p_opt = [
-        0.0080292989,
-        0.0009379699,
-        0.0007661059,
-        0.2989530067,
-        0.0824511483,
-        0.7179029697,
-        8.43292e-05,
-        0.0021265894,
-        0.0901807409,
+        0.0066540622,
+        0.0009468204,
+        0.0008828972,
+        0.0523783828,
+        0.0949989455,
+        0.5888295811,
+        9.60455e-05,
+        0.0005297538,
+        0.0758987387,
     ]
 
     print("Running Open-Loop Validation...")

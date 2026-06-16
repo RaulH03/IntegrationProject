@@ -15,9 +15,14 @@ if __name__ == "__main__":
 
     b, a = butter(order, cutoff, btype="highpass", fs=1 / dt)
 
-    x_meas_pos[0, :] = filtfilt(b, a, savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3))
-    x_meas_pos[1, :] = filtfilt(
-        b, a, (savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :])
+    # x_meas_pos[0, :] = filtfilt(b, a, savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3))
+    # x_meas_pos[1, :] = filtfilt(
+    #     b, a, (savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :])
+    # )
+
+    x_meas_pos[0, :] = savgol_filter(np.unwrap(x_meas_pos[0, :]), 7, 3)
+    x_meas_pos[1, :] = (
+        savgol_filter(np.unwrap(x_meas_pos[1, :]), 7, 3) + x_meas_pos[0, :]
     )
 
     x_meas = np.vstack(
@@ -29,7 +34,7 @@ if __name__ == "__main__":
     )
 
     np.savez(
-        "experiments/chirp_05_10_4_amp015_processed.npz",
+        "experiments/chirp_05_10_4_amp015_processed_unfiltered.npz",
         t_eval=t_eval,
         u_data=u_data,
         x_meas=x_meas,

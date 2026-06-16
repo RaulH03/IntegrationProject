@@ -11,11 +11,11 @@ def objective_global(p, u_data, x_meas, dt, Kt):
 
     mse_th1 = np.mean((x_sim[0, :] - x_meas[0, :]) ** 2)
     mse_th2 = np.mean((x_sim[1, :] - x_meas[1, :]) ** 2)
-    mse_dq1 = np.mean((x_sim[2, :] - x_meas[2, :]) ** 2) * 0
+    mse_dq1 = np.mean((x_sim[2, :] - x_meas[2, :]) ** 2)
     mse_dq2 = np.mean((x_sim[3, :] - x_meas[3, :]) ** 2)
 
     # Weight positions heavily, keep velocities to constrain explosions
-    return (mse_th1 * 1.0) + (mse_th2 * 1.0) + (mse_dq1 * 0.1) + (mse_dq2 * 0.01)
+    return (mse_th1 * 1.0) + (mse_th2 * 1.0) + (mse_dq1 * 0.01) + (mse_dq2 * 0.01)
 
 
 if __name__ == "__main__":
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     #     )
     # )
 
-    data = np.load("experiments/chirp_05_10_4_amp015_processed.npz")
+    data = np.load("experiments/chirp_05_10_4_amp015_processed_unfiltered.npz")
 
     x_meas = data["x_meas"]
     u_data = data["u_data"]
