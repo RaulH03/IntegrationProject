@@ -53,20 +53,16 @@ def _auto_derive_math(print_dyn=False):
     LM.form_lagranges_equations()
 
     f_sym = LM.forcing
-    K_sym = -f_sym.jacobian(sm.Matrix([th1, th2]))
-    D_sym = -f_sym.jacobian(sm.Matrix([th1_d, th2_d]))
-
-    # --- NEW: Automatically extract the true B vector from the physics ---
-    B_sym_full = f_sym.jacobian(sm.Matrix([u]))
+    K_sym = f_sym.jacobian(sm.Matrix([th1, th2]))
+    D_sym = f_sym.jacobian(sm.Matrix([th1_d, th2_d]))
+    B_sym = f_sym.jacobian(sm.Matrix([u]))
 
     # Evaluate at Down-Down equilibrium
     eq_dict = {th1: 0, th2: 0, th1_d: 0, th2_d: 0, u: 0}
     M_eq = sm.simplify(LM.mass_matrix.subs(eq_dict))
     K_eq = sm.simplify(K_sym.subs(eq_dict))
     D_eq = sm.simplify(D_sym.subs(eq_dict))
-    B_eq = sm.simplify(
-        B_sym_full.subs(eq_dict)
-    )  # This perfectly evaluates to [[-Kt_sym], [0]]
+    B_eq = sm.simplify(B_sym.subs(eq_dict))
 
     if print_dyn:
         print(sm.latex(M_eq))
@@ -90,8 +86,8 @@ def _auto_derive_math(print_dyn=False):
     # Convert to explicit A and B matrices using Adjugate
     P1, P2, P3, P4, P5, P6, P7 = sm.symbols("P1 P2 P3 P4 P5 P6 P7", real=True)
     M_lump = sm.Matrix([[P1, P2], [P2, P3]])
-    K_lump = sm.Matrix([[P4, 0], [0, P5]])
-    D_lump = sm.Matrix([[P6 + P7, -P7], [-P7, P7]])
+    K_lump = sm.Matrix([[-P4, 0], [0, -P5]])
+    D_lump = sm.Matrix([[-P6 - P7, P7], [P7, -P7]])
 
     det_sym = P1 * P3 - P2**2
     M_inv = M_lump.adjugate() / det_sym
@@ -99,7 +95,7 @@ def _auto_derive_math(print_dyn=False):
 
     A_sym = sm.Matrix.vstack(
         sm.Matrix.hstack(Z_mat, I_mat),
-        sm.Matrix.hstack(-M_inv * K_lump, -M_inv * D_lump),
+        sm.Matrix.hstack(M_inv * K_lump, M_inv * D_lump),
     )
 
     B_sym = sm.Matrix.vstack(Z_mat[:, 0:1], M_inv * B_eq)
@@ -137,7 +133,7 @@ def build_matrices(p, Kt, eq="Down-Down"):
 
     P1, P2, P3, P4, P5, P6, P7 = p[:7]
     if eq == "Down-Up":
-        P2, P5 = -P2, -P5  # Gravity flips for inverted equilibrium
+        P2, P5 = -P2, -P5
 
     if eq == "Up-Up":
         P4, P5 = -P4, -P5
