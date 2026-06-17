@@ -1,7 +1,7 @@
 % Load the data
-dataStruct = load('MPC_up_up_equili_dist.mat');
+dataStruct = load('LQR_up_up_ref_trac.mat');
 data = dataStruct.ans';
-data = data(150:350, :);
+data = data(11000:12000, :);
 
 % Extract columns
 time         = data(:, 1);
@@ -15,7 +15,7 @@ est_speed_1  = data(:, 8);
 est_speed_2  = data(:, 9);
 
 % Create figure
-figure('Name', 'Double Pendulum MPC', 'Position', [100, 100, 850, 850]);
+figure('Name', 'Double Pendulum LQR Up Up reference', 'Position', [100, 100, 850, 850]);
 
 % 1. Control Input (Bounded & Saturated)
 subplot(4, 1, 1);
@@ -48,7 +48,7 @@ hold on;
 plot(time, meas_2_abs, 'LineWidth', 1.5, 'Color', [0.4660 0.6740 0.1880]);
 plot(time, est_2, '-.', 'LineWidth', 1.5, 'Color', [0.6350 0.0780 0.1840]);
 hold off;
-ylim([-0.1, 0.1]);
+ylim([-0.15, 0.15]);
 ylabel('Link 2 Angle (rad)', 'FontWeight', 'bold');
 legend('Measured (abs)', 'Estimated', 'Location', 'northeast');
 grid on; set(gca, 'XTickLabel', []);
@@ -59,11 +59,11 @@ hold on;
 plot(time, est_speed_1, 'LineWidth', 1.5);
 plot(time, est_speed_2, 'LineWidth', 1.5);
 hold off;
-ylim([-2, 2]);
+ylim([-2.5, 2.5]);
 xlabel('Time', 'FontWeight', 'bold');
 ylabel('Angular Vel (rad/s)', 'FontWeight', 'bold');
 legend('Est Velocity 1', 'Est Velocity 2', 'Location', 'northeast');
 grid on;
 
 % Add overall title
-sgtitle('Double Pendulum MPC: Up-Up Equilibrium disturbed', 'FontSize', 15, 'FontWeight', 'bold');
+sgtitle('Double Pendulum LQR: Up-Up reference tracking', 'FontSize', 15, 'FontWeight', 'bold');

@@ -108,6 +108,7 @@ h = 0.01;
 % reference tracking
 Q = diag([6e2, 1e1, 1e1, 1e0]);
 R = 3e2;
+
 sysc = ss(A, B, C, D);
 sysd = c2d(ss(A,B,C,D),h);
 
@@ -133,7 +134,7 @@ ct_eigvals_kal = log(eigvals_Kal)/h
 eigvals_LQR = eig(Ad - Bd*K)
 ct_eigvals_LQR = log(eigvals_LQR)/h
 % K
-TSim = 30;
+TSim = 120;
 
 t = [0:h:TSim]';
 % y_input = chirp(t,0,60,0.25,"linear",90);
